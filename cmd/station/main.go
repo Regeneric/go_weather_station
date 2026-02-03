@@ -95,7 +95,7 @@ func main() {
 			}
 		}()
 
-		slog.Debug("OneWire device initialized successfully", "bus", config.Soft1Wire)
+		slog.Debug("OneWire bus initialized successfully", "bus", config.Soft1Wire)
 		slog.Info("All OneWire buses initialized successfully")
 	}
 	// ------------------------------------------------------------------------

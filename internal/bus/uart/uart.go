@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"periph.io/x/conn/v3/driver/driverreg"
 	"periph.io/x/conn/v3/physic"
 	"periph.io/x/conn/v3/uart"
 	"periph.io/x/conn/v3/uart/uartreg"
@@ -16,6 +17,10 @@ func Init(device string, baudRate int) (uart.PortCloser, error) {
 
 	if _, err := host.Init(); err != nil {
 		return nil, fmt.Errorf("[UART] Host init failed: %w", err)
+	}
+
+	if _, err := driverreg.Init(); err != nil {
+		return nil, fmt.Errorf("[UART] Driver init failed: %w", err)
 	}
 
 	log.Debug("[UART] Host init successful")
@@ -38,6 +43,10 @@ func Scan() error {
 	slog.Info("--- SCANING AVAILABLE UART PORTS ---")
 	if _, err := host.Init(); err != nil {
 		return fmt.Errorf("[UART] Host init failed: %w", err)
+	}
+
+	if _, err := driverreg.Init(); err != nil {
+		return fmt.Errorf("[UART] Driver init failed: %w", err)
 	}
 
 	ports := uartreg.All()
