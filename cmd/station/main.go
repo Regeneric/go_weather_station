@@ -67,7 +67,7 @@ func main() {
 		// Do not exit on this error, core functions don't need UART
 	} else {
 		defer func() {
-			slog.Debug("Closing UART device...", "port", config.UARTPort, "err", err)
+			slog.Debug("Closing UART device...", "port", config.UARTPort)
 			if err := hkUART0.Close(); err != nil {
 				slog.Error("Error closing UART device", "port", config.UARTPort, "err", err)
 			}
@@ -87,7 +87,7 @@ func main() {
 		// Do not exit on this error, core functions don't need 1W
 	} else {
 		defer func() {
-			slog.Debug("Closing OneWire bus...", "bus", config.Soft1Wire, "err", err)
+			slog.Debug("Closing OneWire bus...", "bus", config.Soft1Wire)
 			if err := hkOneWire0.Close(); err != nil {
 				slog.Error("Error closing OneWire bus", "bus", config.Soft1Wire, "err", err)
 			}
