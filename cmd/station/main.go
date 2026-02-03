@@ -61,6 +61,8 @@ func main() {
 	// ************************************************************************
 	// = UART ===
 	// ------------------------------------------------------------------------
+	uart.Scan()
+
 	hkUART0, err := uart.Init(config.UARTPort, config.UARTBaudRate)
 	if err != nil {
 		slog.Error("[CRITICAL] Failed to initialize UART device", "port", config.UARTPort, "err", err)

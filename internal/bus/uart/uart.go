@@ -18,6 +18,8 @@ func Init(device string, baudRate int) (uart.PortCloser, error) {
 		return nil, fmt.Errorf("[UART] Host init failed: %w", err)
 	}
 
+	log.Debug("[UART] Host init successful")
+
 	port, err := uartreg.Open(device)
 	if err != nil {
 		return nil, fmt.Errorf("[UART] Failed to open UART device %s: %w", device, err)
@@ -30,4 +32,12 @@ func Init(device string, baudRate int) (uart.PortCloser, error) {
 	}
 
 	return port, nil
+}
+
+func Scan() {
+	slog.Info("--- SCANING AVAILABLE UART PORTS ---")
+	for _, port := range uartreg.All() {
+		slog.Info("Found UART port", "name", port.Name, "number", port.Number, "aliases", port.Aliases, "open", port.Open)
+	}
+	slog.Info("------------------------------------")
 }
