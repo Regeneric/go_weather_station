@@ -35,7 +35,7 @@ const (
 )
 
 const (
-	UARTPort     = "/dev/serial0"
+	UARTPort     = "/dev/ttyAMA0"
 	UARTBaudRate = 9600
 )
 

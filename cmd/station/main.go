@@ -6,7 +6,6 @@ import (
 
 	"github.com/Regeneric/go_weather_station/internal/bus/i2c"
 	"github.com/Regeneric/go_weather_station/internal/bus/onewire"
-	"github.com/Regeneric/go_weather_station/internal/bus/uart"
 	"github.com/Regeneric/go_weather_station/internal/config"
 )
 
@@ -61,23 +60,21 @@ func main() {
 	// ************************************************************************
 	// = UART ===
 	// ------------------------------------------------------------------------
-	uart.Scan()
+	// hkUART0, err := uart.Init(config.UARTPort, config.UARTBaudRate)
+	// if err != nil {
+	// 	slog.Error("[CRITICAL] Failed to initialize UART device", "port", config.UARTPort, "err", err)
+	// 	// Do not exit on this error, core functions don't need UART
+	// } else {
+	// 	defer func() {
+	// 		slog.Debug("Closing UART device...", "port", config.UARTPort)
+	// 		if err := hkUART0.Close(); err != nil {
+	// 			slog.Error("Error closing UART device", "port", config.UARTPort, "err", err)
+	// 		}
+	// 	}()
 
-	hkUART0, err := uart.Init(config.UARTPort, config.UARTBaudRate)
-	if err != nil {
-		slog.Error("[CRITICAL] Failed to initialize UART device", "port", config.UARTPort, "err", err)
-		// Do not exit on this error, core functions don't need UART
-	} else {
-		defer func() {
-			slog.Debug("Closing UART device...", "port", config.UARTPort)
-			if err := hkUART0.Close(); err != nil {
-				slog.Error("Error closing UART device", "port", config.UARTPort, "err", err)
-			}
-		}()
-
-		slog.Debug("UART device initialized successfully", "port", config.UARTPort)
-		slog.Info("All UART devices initialized successfully")
-	}
+	// 	slog.Debug("UART device initialized successfully", "port", config.UARTPort)
+	// 	slog.Info("All UART devices initialized successfully")
+	// }
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
