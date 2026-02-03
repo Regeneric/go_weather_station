@@ -34,10 +34,15 @@ func Init(device string, baudRate int) (uart.PortCloser, error) {
 	return port, nil
 }
 
-func Scan() {
+func Scan() error {
 	slog.Info("--- SCANING AVAILABLE UART PORTS ---")
+	if _, err := host.Init(); err != nil {
+		return fmt.Errorf("[UART] Host init failed: %w", err)
+	}
+
 	for _, port := range uartreg.All() {
 		slog.Info("Found UART port", "name", port.Name, "number", port.Number, "aliases", port.Aliases, "open", port.Open)
 	}
-	slog.Info("------------------------------------")
+	slog.Info("-------------------------------------")
+	return nil
 }
