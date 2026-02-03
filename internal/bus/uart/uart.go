@@ -40,8 +40,13 @@ func Scan() error {
 		return fmt.Errorf("[UART] Host init failed: %w", err)
 	}
 
-	for _, port := range uartreg.All() {
-		slog.Info("Found UART port", "name", port.Name, "number", port.Number, "aliases", port.Aliases, "open", port.Open)
+	ports := uartreg.All()
+	if len(ports) == 0 {
+		slog.Warn("No UART ports found")
+	} else {
+		for _, port := range ports {
+			slog.Info("Found UART port", "name", port.Name, "number", port.Number, "aliases", port.Aliases, "open", port.Open)
+		}
 	}
 	slog.Info("-------------------------------------")
 	return nil
