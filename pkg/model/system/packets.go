@@ -1,0 +1,7 @@
+package system
+
+type SensorPacket struct {
+	SourceID  string      `json:"deviceId"`
+	Payload   interface{} `json:"payload"`
+	Timestamp int64       `json:"timestamp"`
+}

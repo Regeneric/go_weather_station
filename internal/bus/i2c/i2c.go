@@ -10,7 +10,7 @@ import (
 )
 
 func Init(device string) (i2c.BusCloser, error) {
-	log := slog.With("func", "Init", "params", "string", "package", "bus", "module", "i2c")
+	log := slog.With("func", "Init", "params", "(string)", "package", "bus", "module", "i2c")
 	log.Info("Initializing I2C bus", "device", device)
 
 	// Load drivers for RPi

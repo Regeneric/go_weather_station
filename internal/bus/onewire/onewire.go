@@ -10,7 +10,7 @@ import (
 )
 
 func Init(device string) (onewire.BusCloser, error) {
-	log := slog.With("func", "Init", "params", "string", "package", "bus", "module", "onewire")
+	log := slog.With("func", "Init", "params", "(string)", "package", "bus", "module", "onewire")
 	log.Info("Initializing OneWire bus", "bus", device)
 
 	if _, err := host.Init(); err != nil {

@@ -19,11 +19,15 @@ const LogLevel = LogDebug // Default log level
 
 // --- MQTT ----------------------------------------------------------------
 const (
-	MQTTBrokerAddress = "192.168.1.50"
-	MQTTBrokerPort    = 1883
-	MQTTopic          = "sensors/data"
-	MQTTKeepAlive     = 60 * time.Second
-	MQTTDeviceName    = "pico"
+	MQTTBrokerAddress     = "127.0.0.1"
+	MQTTBrokerPort        = "1883"
+	MQTTopic              = "hws/sensors"
+	MQTTKeepAlive         = 60 * time.Second
+	MQTTReconnectInterval = 10 * time.Second
+	MQTTAutoReconnect     = true
+	MQTTDeviceName        = "rpi_zero_base_0"
+	MQTTUserName          = "abc"
+	MQTTPassword          = "xyz"
 )
 
 // -------------------------------------------------------------------------
@@ -41,6 +45,15 @@ const (
 
 const (
 	Soft1Wire = "1" // /sys/bus/w1/devices/w1_bus_master1
+)
+
+// -------------------------------------------------------------------------
+
+// --- BME280 =======-------------------------------------------------------
+const (
+	BME280UseSensor = true
+	BME280UseI2C    = true
+	BME280Address   = 0x76
 )
 
 // -------------------------------------------------------------------------
