@@ -25,7 +25,7 @@ const (
 	MQTTKeepAlive         = 60 * time.Second
 	MQTTReconnectInterval = 10 * time.Second
 	MQTTAutoReconnect     = true
-	MQTTDeviceName        = "rpi_zero_base_0"
+	MQTTDeviceName        = "rpi_zero_0"
 	MQTTUserName          = "abc"
 	MQTTPassword          = "xyz"
 )
@@ -45,6 +45,11 @@ const (
 
 const (
 	Soft1Wire = "1" // /sys/bus/w1/devices/w1_bus_master1
+)
+
+const (
+	SPIDevice = "0"
+	SPISpeed  = 10 // MHz
 )
 
 // -------------------------------------------------------------------------

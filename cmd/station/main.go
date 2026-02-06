@@ -10,6 +10,7 @@ import (
 
 	"github.com/Regeneric/go_weather_station/internal/bus/i2c"
 	"github.com/Regeneric/go_weather_station/internal/bus/onewire"
+	spis "github.com/Regeneric/go_weather_station/internal/bus/spi"
 	"github.com/Regeneric/go_weather_station/internal/config"
 	"github.com/Regeneric/go_weather_station/internal/sensors/bme280"
 	"github.com/Regeneric/go_weather_station/pkg/model/bme"
@@ -102,6 +103,26 @@ func main() {
 	// 	slog.Debug("UART device initialized successfully", "port", config.UARTPort)
 	// 	slog.Info("All UART devices initialized successfully")
 	// }
+	// ------------------------------------------------------------------------
+
+	// ************************************************************************
+	// = SPI ===
+	// ------------------------------------------------------------------------
+	hkSPI0, err := spis.Init(config.SPIDevice)
+	if err != nil {
+		slog.Error("[CRITICAL] Failed to initialized SPI bus", "bus", "SPI0."+config.SPIDevice, "err", err)
+		os.Exit(1)
+	}
+
+	defer func() {
+		slog.Debug("Closing SPI bus...", "bus", "SPI0."+config.SPIDevice)
+		if err := hkSPI0.Close(); err != nil {
+			slog.Error("Error closing SPI bus", "bus", "SPI0."+config.SPIDevice, "err", err)
+		}
+	}()
+
+	slog.Debug("SPI bus initialized successfully", "bus", "SPI0."+config.SPIDevice)
+	slog.Info("All SPI buses initialized successfully")
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
