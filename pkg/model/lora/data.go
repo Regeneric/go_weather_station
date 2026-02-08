@@ -453,25 +453,25 @@ type Pins struct {
 
 type Config struct {
 	Enable         bool             `default:"true"`
-	Modem          uint8            `default:"0x01"`            // lora.LoraModem / lora.FskModem
+	Modem          uint8            `default:"1"`               // lora.LoraModem / lora.FskModem
 	Frequency      physic.Frequency `default:"433000000000000"` // I.e. 433000000000000 (mHz)
-	DeviceType     uint16           `default:"0x02"`            // lora.TxPowerSX1261 / lora.TxPowerSX1262
+	DeviceType     uint16           `default:"2"`               // lora.TxPowerSX1261 / lora.TxPowerSX1262
 	Bandwidth      physic.Frequency `default:"125000000000"`    // I.e. 125000000000  (mHz)
 	SF             uint8            `default:"7"`               // Spreading Factor (7-12)
 	CR             uint8            `default:"5"`               // Coding Rate (5 -> 4/5, 6 -> 4/6)
 	LDRO           bool             `default:"false"`           // Low Data Rate Optimize - true = on, false = off
 	DC_DC          bool             `default:"true"`            // DC-DC converter
-	HeaderType     uint8            `default:"0x00"`            // lora.HeaderExplicit / lora.HeaderImplicit
+	HeaderType     uint8            `default:"0"`               // lora.HeaderExplicit / lora.HeaderImplicit
 	PreambleLen    uint16           `default:"12"`              // I.e. 12
 	PayloadLen     uint8            `default:"32"`              // I.e. 32
 	CRCType        bool             `default:"true"`            // true = on, false = off
 	InvertIQ       bool             `default:"false"`           // true = on, false = off
-	SyncWord       uint16           `default:"0x1424"`          // 0x3444 (Public Network) / 0x1424 (Private Network)
+	SyncWord       uint16           `default:"5156"`            // 0x3444 (Public Network) / 0x1424 (Private Network)
 	TXPower        int8             `default:"0"`               // SX1261: -17 - +14 (dBm) ; SX1262: -9 - +22 (dBm)
-	StandbyMode    uint8            `default:"0x00"`            // lora.StandbyRc / lora.StandbyXosc
-	FrequencyRange []uint8          `default:"[107, 111]"`      // [lora.CalImg430, lora.CalImg440]
-	RampTime       uint8            `default:"0x05"`            // lora.PaRamp10 - lora.PaRamp3400u ; 0x05 = lora.PaRamp800u
-	IRQMask        uint16           `default:"0x03FF"`          // 0x03FF = IRQ All
+	StandbyMode    uint8            `default:"0"`               // lora.StandbyRc / lora.StandbyXosc
+	FrequencyRange []uint8          `default:"-"`               // [lora.CalImg430, lora.CalImg440]
+	RampTime       uint8            `default:"5"`               // lora.PaRamp10 - lora.PaRamp3400u ; 0x05 = lora.PaRamp800u
+	IRQMask        uint16           `default:"1023"`            // 0x03FF = IRQ All
 
 	Pins *Pins
 }
@@ -488,10 +488,4 @@ type Device struct {
 	BufferIndex       uint8
 	CurrentPayloadLen uint8
 	Config            *Config
-}
-
-type Radio interface {
-	HardReset() error
-	Tx(payload []uint8) error
-	Rx() ([]uint8, error)
 }

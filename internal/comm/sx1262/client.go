@@ -72,7 +72,7 @@ func (d *LoraModem) Close(params ...uint8) error {
 	}
 
 	commands := []uint8{lora.CmdSetSleep, sleepType}
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not shutdown LoRa modem [% X]: %w", commands, err)
 	}
 

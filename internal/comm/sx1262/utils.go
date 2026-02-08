@@ -66,7 +66,7 @@ func (d *LoraModem) BusyCheck(timeout <-chan time.Time, sleep ...time.Duration) 
 	}
 }
 
-func (d *LoraModem) Tx(w []uint8, r []uint8, timeout ...<-chan time.Time) error {
+func (d *LoraModem) Write(w []uint8, r []uint8, timeout ...<-chan time.Time) error {
 	log := slog.With("func", "LoraModem.Tx()", "params", "([]uint8, []uint8, ...<-chan time.Time)", "package", "comm", "module", "sx1262")
 	log.Debug("Send data to LoRa modem")
 
@@ -101,7 +101,7 @@ func (d *LoraModem) WriteRegister(address uint16, data []uint8) error {
 		uint8(address & 0xFF),
 	}, data...)
 
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not write data [% X] to register at address 0x%02X: %w", commands, address, err)
 	}
 

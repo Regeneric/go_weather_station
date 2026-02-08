@@ -13,7 +13,7 @@ func (d *LoraModem) SetStandby(mode uint8) error {
 	log.Debug("Set LoRa standby mode", "mode", fmt.Sprintf("0x%02X", mode))
 
 	commands := []uint8{lora.CmdSetStandby, mode}
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set standby mode [% X]: %w", commands, err)
 	}
 
@@ -26,7 +26,7 @@ func (d *LoraModem) SetPacketType(packet uint8) error {
 	log.Debug("Set LoRa packet type", "packet", fmt.Sprintf("0x%02X", packet))
 
 	commands := []uint8{lora.CmdSetPacketType, packet}
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set packet type [% X]: %w", commands, err)
 	}
 
@@ -39,7 +39,7 @@ func (d *LoraModem) CalibrateImage(frequencyRange []uint8) error {
 	log.Debug("Set LoRa frequency range", "range", fmt.Sprintf("% X", frequencyRange))
 
 	commands := append([]uint8{lora.CmdCalibrateImage}, frequencyRange...)
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set frequency range [% X]: %w", commands, err)
 	}
 
@@ -63,7 +63,7 @@ func (d *LoraModem) SetRfFrequency(frequency physic.Frequency) error {
 		uint8(freqRf & 0x0FF),
 	}
 
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set RF frequency [% X]: %w", commands, err)
 	}
 
@@ -122,7 +122,7 @@ func (d *LoraModem) SetPaConfig(dbm int8) error {
 	}
 
 	commands := []uint8{lora.CmdSetPaConfig, paDutyCycle, hpMax, device, paLut}
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set power amplifier parameters [% X]: %w", commands, err)
 	}
 
@@ -139,7 +139,7 @@ func (d *LoraModem) SetTxParams(dbm int8, rampTime uint8) error {
 	}
 
 	commands := []uint8{lora.CmdSetTxParams, uint8(dbm), rampTime}
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set transmit power [% X]: %w", commands, err)
 	}
 
@@ -191,7 +191,7 @@ func (d *LoraModem) SetModulationParams(spreadFactor uint8, bandwidth physic.Fre
 	}
 
 	commands := []uint8{lora.CmdSetModulationParams, spreadFactor, bw, cr, ld, 0, 0, 0, 0} // Last four bytes are unused in current LoRa implementation
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set modulation params [% X]: %w", commands, err)
 	}
 
@@ -223,7 +223,7 @@ func (d *LoraModem) SetPacketParams(PreambleLen uint16, headerType uint8, payloa
 		0, 0, 0,
 	}
 
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set packet params [% X]: %w", commands, err)
 	}
 
@@ -245,7 +245,7 @@ func (d *LoraModem) SetDioIrqParams(irqMask uint16) error {
 		0, 0, 0, 0,
 	}
 
-	if err := d.Tx(commands, nil); err != nil {
+	if err := d.Write(commands, nil); err != nil {
 		return fmt.Errorf("Could not set DIO IRQ params [% X]: %w", commands, err)
 	}
 
