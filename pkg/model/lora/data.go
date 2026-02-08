@@ -384,7 +384,7 @@ const (
 
 	// LoraSyncWord
 	LoraSyncWordPublic  = 0x3444 // LoRa SyncWord for public network
-	LoraSyncWordPrivate = 0x0741 // LoRa SyncWord for private network (default)
+	LoraSyncWordPrivate = 0x1424 // LoRa SyncWord for private network (default)
 
 	// RxGain
 	RxGainPowerSaving = 0x00 // Gain used in Rx mode: power saving gain (default)
@@ -466,7 +466,7 @@ type Config struct {
 	PayloadLen     uint8            `default:"32"`              // I.e. 32
 	CRCType        bool             `default:"true"`            // true = on, false = off
 	InvertIQ       bool             `default:"false"`           // true = on, false = off
-	SyncWord       uint16           `default:"0x1424"`          // 0x1424 (Public Network) / 0x0741 (Private Network)
+	SyncWord       uint16           `default:"0x1424"`          // 0x3444 (Public Network) / 0x1424 (Private Network)
 	TXPower        int8             `default:"0"`               // SX1261: -17 - +14 (dBm) ; SX1262: -9 - +22 (dBm)
 	StandbyMode    uint8            `default:"0x00"`            // lora.StandbyRc / lora.StandbyXosc
 	FrequencyRange []uint8          `default:"[107, 111]"`      // [lora.CalImg430, lora.CalImg440]

@@ -72,7 +72,7 @@ const (
 const (
 	SX1262Enable              = true
 	SX1262Frequency           = 433 * physic.MegaHertz // 433 MHz
-	SX1262Bandwidth           = 125 * physic.KiloHertz // 125 kHz
+	SX1262Bandwidth           = 500 * physic.KiloHertz // 125 kHz
 	SX1262SpreadingFactor     = 7                      // SF
 	SX1262CodingRate          = 5                      // CR (5 -> 4/5, 6 -> 4/6, 7 -> 4/7, 8 -> 4/8)
 	SX1262LowDataRateOptimize = false                  // LDRO
@@ -81,7 +81,7 @@ const (
 	SX1262PayloadLength       = 32
 	SX1262CRCType             = true
 	SX1262InvertIQ            = false
-	SX1262SyncWord            = 0x0741 // 0x3444 - public network ; 0x0741 - private network
+	SX1262SyncWord            = 0x1424 // 0x3444 - public network ; 0x1424 - private network
 	SX1262TransmitPower       = 0
 	SX1262TxEnPin             = "GPIO6"
 	SX1262DIO1Pin             = "GPIO16"
