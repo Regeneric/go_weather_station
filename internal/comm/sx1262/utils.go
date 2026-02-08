@@ -122,7 +122,7 @@ func (d *LoraModem) ReadRegister(address uint16, len uint8) ([]uint8, error) {
 	w[3] = 0x00
 
 	if err := d.Write(w, r); err != nil {
-		return nil, fmt.Errorf("Could not write data [% X] to register at address 0x%02X: %w", commands, address, err)
+		return nil, fmt.Errorf("Could not write data [% X] to register at address 0x%02X: %w", w, address, err)
 	}
 
 	return r[4:], nil
