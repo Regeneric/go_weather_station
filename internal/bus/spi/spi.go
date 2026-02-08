@@ -11,13 +11,11 @@ import (
 )
 
 func Init(device string) (spi.PortCloser, error) {
-	log := slog.With("func", "Init", "params", "(string)", "package", "bus", "module", "spis")
-	log.Info("Initializing SPI bus", "device", device)
-
+	log := slog.With("func", "Init()", "params", "(string)", "return", "(spi.PortCloser, error)", "package", "bus", "module", "spis")
 	if config.SPIEnable == false {
-		log.Warn("SPI has been disabled in the config file!", "enable", config.SPIEnable)
-		return nil, nil
+		return nil, fmt.Errorf("SPI has been disabled in the config file: SPIEnable == %v", config.SPIEnable)
 	}
+	log.Info("Initializing SPI bus", "device", device)
 
 	// Load drivers for RPi
 	if _, err := host.Init(); err != nil {

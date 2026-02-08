@@ -11,13 +11,11 @@ import (
 )
 
 func Init(device string) (onewire.BusCloser, error) {
-	log := slog.With("func", "Init", "params", "(string)", "package", "bus", "module", "onewire")
-	log.Info("Initializing OneWire bus", "bus", device)
-
+	log := slog.With("func", "Init()", "params", "(string)", "return", "(onewire.BusClose, error)", "package", "bus", "module", "onewire")
 	if config.Enable1Wire == false {
-		log.Warn("1-Wire has been disabled in the config file!", "enable", config.Enable1Wire)
-		return nil, nil
+		return nil, fmt.Errorf("1-Wire has been disabled in the config file: Enable1Wire == %v", config.Enable1Wire)
 	}
+	log.Info("Initializing OneWire bus", "bus", device)
 
 	if _, err := host.Init(); err != nil {
 		return nil, fmt.Errorf("[OneWire] Host init failed: %w", err)

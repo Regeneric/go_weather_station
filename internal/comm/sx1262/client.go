@@ -15,7 +15,7 @@ type LoraModem struct {
 }
 
 func New(connection spi.Conn, cfg *lora.Config) (*LoraModem, error) {
-	log := slog.With("func", "New()", "params", "(spi.Conn, *lora.Config)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "New()", "params", "(spi.Conn, *lora.Config)", "return", "(*LoraModem, error)", "package", "comm", "module", "sx1262")
 	log.Debug("LoRa modem constructor", "spi", connection, "config", cfg)
 
 	if cfg.Enable == false {
@@ -63,7 +63,7 @@ func New(connection spi.Conn, cfg *lora.Config) (*LoraModem, error) {
 }
 
 func (d *LoraModem) Close(params ...uint8) error {
-	log := slog.With("func", "Close()", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "Close()", "params", "...uint8", "package", "comm", "module", "sx1262")
 	log.Info("Shutting down LoRa modem...")
 
 	var sleepType uint8
@@ -80,7 +80,7 @@ func (d *LoraModem) Close(params ...uint8) error {
 }
 
 func hardwareSetup(connection spi.Conn, cfg *lora.Config) (*lora.Device, error) {
-	log := slog.With("func", "hardwareSetup()", "params", "(spi.Conn, *lora.Config)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "hardwareSetup()", "params", "(spi.Conn, *lora.Config)", "return", "(*lora.Device, error)", "package", "comm", "module", "sx1262")
 	log.Info("Initializing LoRA module")
 
 	sx1262 := lora.Device{

@@ -11,13 +11,11 @@ import (
 )
 
 func Init(device string) (i2c.BusCloser, error) {
-	log := slog.With("func", "Init", "params", "(string)", "package", "bus", "module", "i2c")
-	log.Info("Initializing I2C bus", "device", device)
-
+	log := slog.With("func", "Init()", "params", "(string)", "return", "(i2c.BusCloser, error)", "package", "bus", "module", "i2c")
 	if config.I2CEnable == false {
-		log.Warn("I2C has been disabled in the config file!", "enable", config.I2CEnable)
-		return nil, nil
+		return nil, fmt.Errorf("I2C has been disabled in the config file: I2CEnable == %v", config.I2CEnable)
 	}
+	log.Info("Initializing I2C bus", "device", device)
 
 	// Load drivers for RPi
 	if _, err := host.Init(); err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/Regeneric/go_weather_station/internal/bus/i2c"
 	"github.com/Regeneric/go_weather_station/internal/bus/onewire"
 	spis "github.com/Regeneric/go_weather_station/internal/bus/spi"
+	"github.com/Regeneric/go_weather_station/internal/bus/uart"
 	"github.com/Regeneric/go_weather_station/internal/comm/sx1262"
 	"github.com/Regeneric/go_weather_station/internal/config"
 	"github.com/Regeneric/go_weather_station/internal/sensors/bme280"
@@ -28,7 +29,7 @@ func main() {
 	// ************************************************************************
 	// *** Setup **************************************************************
 
-	// Load platform drivers
+	// Platform drivers
 	if _, err := host.Init(); err != nil {
 		panic(err)
 	}
@@ -47,7 +48,7 @@ func main() {
 	// ------------------------------------------------------------------------
 	opts := &slog.HandlerOptions{
 		Level:     config.LogLevel,
-		AddSource: true,
+		AddSource: false,
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, opts))
@@ -59,54 +60,49 @@ func main() {
 	// ------------------------------------------------------------------------
 	hkI2C1, err := i2c.Init(config.HardI2C)
 	if err != nil {
-		slog.Error("[CRITICAL] Failed to initialized I2C bus", "bus", "i2c-"+config.HardI2C, "err", err)
-		os.Exit(1)
+		slog.Error("Failed to initialized I2C bus", "bus", "i2c-"+config.HardI2C, "err", err)
+	} else {
+		slog.Debug("I2C bus initialized successfully", "bus", "i2c-"+config.HardI2C)
+
+		defer func() {
+			slog.Debug("Closing I2C bus...", "bus", "i2c-"+config.HardI2C)
+			if err := hkI2C1.Close(); err != nil {
+				slog.Error("Error closing I2C bus", "bus", "i2c-"+config.HardI2C, "err", err)
+			}
+		}()
 	}
-
-	defer func() {
-		slog.Debug("Closing I2C bus...", "bus", "i2c-"+config.HardI2C)
-		if err := hkI2C1.Close(); err != nil {
-			slog.Error("Error closing I2C bus", "bus", "i2c-"+config.HardI2C, "err", err)
-		}
-	}()
-
-	slog.Debug("I2C bus initialized successfully", "bus", "i2c-"+config.HardI2C)
 
 	hkI2C2, err := i2c.Init(config.SoftI2C)
 	if err != nil {
-		slog.Error("[CRITICAL] Failed to initialized I2C bus", "bus", "i2c-"+config.SoftI2C, "err", err)
-		os.Exit(1)
+		slog.Error("Failed to initialized I2C bus", "bus", "i2c-"+config.SoftI2C, "err", err)
+	} else {
+		slog.Debug("I2C bus initialized successfully", "bus", "i2c-"+config.SoftI2C)
+
+		defer func() {
+			slog.Debug("Closing I2C bus...", "bus", "i2c-"+config.SoftI2C)
+			if err := hkI2C2.Close(); err != nil {
+				slog.Error("Error closing I2C bus", "bus", "i2c-"+config.SoftI2C, "err", err)
+			}
+		}()
 	}
-
-	defer func() {
-		slog.Debug("Closing I2C bus...", "bus", "i2c-"+config.SoftI2C)
-		if err := hkI2C2.Close(); err != nil {
-			slog.Error("Error closing I2C bus", "bus", "i2c-"+config.SoftI2C, "err", err)
-		}
-	}()
-
-	slog.Debug("I2C bus initialized successfully", "bus", "i2c-"+config.SoftI2C)
-	slog.Info("All I2C buses initialized successfully")
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
 	// = UART ===
 	// ------------------------------------------------------------------------
-	// hkUART0, err := uart.Init(config.UARTPort, config.UARTBaudRate)
-	// if err != nil {
-	// 	slog.Error("[CRITICAL] Failed to initialize UART device", "port", config.UARTPort, "err", err)
-	// 	// Do not exit on this error, core functions don't need UART
-	// } else {
-	// 	defer func() {
-	// 		slog.Debug("Closing UART device...", "port", config.UARTPort)
-	// 		if err := hkUART0.Close(); err != nil {
-	// 			slog.Error("Error closing UART device", "port", config.UARTPort, "err", err)
-	// 		}
-	// 	}()
+	hkUART0, err := uart.Init(config.UARTPort, config.UARTBaudRate)
+	if err != nil {
+		slog.Error("Failed to initialize UART device", "port", config.UARTPort, "err", err)
+	} else {
+		slog.Debug("UART device initialized successfully", "port", config.UARTPort)
 
-	// 	slog.Debug("UART device initialized successfully", "port", config.UARTPort)
-	// 	slog.Info("All UART devices initialized successfully")
-	// }
+		defer func() {
+			slog.Debug("Closing UART device...", "port", config.UARTPort)
+			if err := hkUART0.Close(); err != nil {
+				slog.Error("Error closing UART device", "port", config.UARTPort, "err", err)
+			}
+		}()
+	}
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
@@ -114,19 +110,17 @@ func main() {
 	// ------------------------------------------------------------------------
 	hkSPI0, err := spis.Init(config.SPIDevice)
 	if err != nil {
-		slog.Error("[CRITICAL] Failed to initialized SPI bus", "bus", "SPI0."+config.SPIDevice, "err", err)
-		os.Exit(1)
+		slog.Error("Failed to initialized SPI bus", "bus", "SPI0."+config.SPIDevice, "err", err)
+	} else {
+		defer func() {
+			slog.Debug("Closing SPI bus...", "bus", "SPI0."+config.SPIDevice)
+			if err := hkSPI0.Close(); err != nil {
+				slog.Error("Error closing SPI bus", "bus", "SPI0."+config.SPIDevice, "err", err)
+			}
+		}()
+
+		slog.Debug("SPI bus initialized successfully", "bus", "SPI0."+config.SPIDevice)
 	}
-
-	defer func() {
-		slog.Debug("Closing SPI bus...", "bus", "SPI0."+config.SPIDevice)
-		if err := hkSPI0.Close(); err != nil {
-			slog.Error("Error closing SPI bus", "bus", "SPI0."+config.SPIDevice, "err", err)
-		}
-	}()
-
-	slog.Debug("SPI bus initialized successfully", "bus", "SPI0."+config.SPIDevice)
-	slog.Info("All SPI buses initialized successfully")
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
@@ -134,8 +128,7 @@ func main() {
 	// ------------------------------------------------------------------------
 	hkOneWire0, err := onewire.Init(config.Soft1Wire)
 	if err != nil {
-		slog.Error("[CRITICAL] Failed to initialize OneWire bus", "bus", config.Soft1Wire, "err", err)
-		// Do not exit on this error, core functions don't need 1W
+		slog.Error("Failed to initialize OneWire bus", "bus", config.Soft1Wire, "err", err)
 	} else {
 		defer func() {
 			slog.Debug("Closing OneWire bus...", "bus", config.Soft1Wire)
@@ -145,7 +138,6 @@ func main() {
 		}()
 
 		slog.Debug("OneWire bus initialized successfully", "bus", config.Soft1Wire)
-		slog.Info("All OneWire buses initialized successfully")
 	}
 	// ------------------------------------------------------------------------
 

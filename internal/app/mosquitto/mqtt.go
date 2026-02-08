@@ -13,13 +13,12 @@ import (
 )
 
 func MQTTPublish(data <-chan utils.SystemSnapshot, client mqtt.Client) {
-	log := slog.With("func", "MQTTSender()", "params", "(<-chan SystemSnapshot, mqtt.Client)", "package", "main", "module", "mqtt")
-	log.Debug("Publishing data to MQTT topic")
-
+	log := slog.With("func", "MQTTSender()", "params", "(<-chan SystemSnapshot, mqtt.Client)", "return", "(mqtt.Client)", "package", "main", "module", "mqtt")
 	if config.MQTTEnable == false {
 		log.Warn("MQTT has been disabled in the config file!", "enable", config.MQTTEnable)
 		return
 	}
+	log.Debug("Publishing data to MQTT topic")
 
 	for snapshot := range data {
 		slog.Debug("Processing system snapshot", "items", len(snapshot))
