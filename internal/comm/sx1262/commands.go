@@ -9,7 +9,7 @@ import (
 )
 
 func (d *LoraModem) SetStandby(mode uint8) error {
-	log := slog.With("func", "LoraModem.SetStandby()", "params", "(uint8)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.SetStandby()", "params", "(uint8)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa standby mode", "mode", fmt.Sprintf("0x%02X", mode))
 
 	commands := []uint8{lora.CmdSetStandby, mode}
@@ -22,7 +22,7 @@ func (d *LoraModem) SetStandby(mode uint8) error {
 }
 
 func (d *LoraModem) SetPacketType(packet uint8) error {
-	log := slog.With("func", "LoraModem.SetPacketType()", "params", "(uint8)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.SetPacketType()", "params", "(uint8)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa packet type", "packet", fmt.Sprintf("0x%02X", packet))
 
 	commands := []uint8{lora.CmdSetPacketType, packet}
@@ -35,7 +35,7 @@ func (d *LoraModem) SetPacketType(packet uint8) error {
 }
 
 func (d *LoraModem) CalibrateImage(frequencyRange []uint8) error {
-	log := slog.With("func", "LoraModem.CalibrateImage()", "params", "(uint8)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.CalibrateImage()", "params", "([]uint8)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa frequency range", "range", fmt.Sprintf("% X", frequencyRange))
 
 	commands := append([]uint8{lora.CmdCalibrateImage}, frequencyRange...)
@@ -48,7 +48,7 @@ func (d *LoraModem) CalibrateImage(frequencyRange []uint8) error {
 }
 
 func (d *LoraModem) SetRfFrequency(frequency physic.Frequency) error {
-	log := slog.With("func", "LoraModem.SetRfFrequency()", "params", "(physic.Frequency)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.SetRfFrequency()", "params", "(physic.Frequency)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa RF frequency", "frequency", fmt.Sprintf("%d Hz", frequency/physic.Hertz))
 
 	freqHz := uint64(frequency / physic.Hertz)
@@ -67,12 +67,12 @@ func (d *LoraModem) SetRfFrequency(frequency physic.Frequency) error {
 		return fmt.Errorf("Could not set RF frequency [% X]: %w", commands, err)
 	}
 
-	log.Info("RF frequency set", "frequency", fmt.Sprintf("%d Hz", frequency/physic.MegaHertz))
+	log.Info("RF frequency set", "frequency", fmt.Sprintf("%d MHz", frequency/physic.MegaHertz))
 	return nil
 }
 
 func (d *LoraModem) SetPaConfig(dbm int8) error {
-	log := slog.With("func", "LoraModem.SetPaConfig()", "params", "(int8)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.SetPaConfig()", "params", "(int8)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa power amplifier parameters", "dbm", dbm)
 
 	var paDutyCycle, hpMax, device uint8
@@ -131,7 +131,7 @@ func (d *LoraModem) SetPaConfig(dbm int8) error {
 }
 
 func (d *LoraModem) SetTxParams(dbm int8, rampTime uint8) error {
-	log := slog.With("func", "LoraModem.SetTxParams()", "params", "(int8, uint8)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.SetTxParams()", "params", "(int8, uint8)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa transmit params", "dbm", dbm)
 
 	if err := d.SetPaConfig(dbm); err != nil {
@@ -148,7 +148,7 @@ func (d *LoraModem) SetTxParams(dbm int8, rampTime uint8) error {
 }
 
 func (d *LoraModem) SetModulationParams(spreadFactor uint8, bandwidth physic.Frequency, codingRate uint8, ldro bool) error {
-	log := slog.With("func", "LoraModem.SetModulationParams()", "params", "(uint8, physic.Frequency, uint8, bool)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.SetModulationParams()", "params", "(uint8, physic.Frequency, uint8, bool)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa modulation params", "spreadFactor", spreadFactor, "bandwidth", bandwidth, "codingRate", codingRate, "ldro", ldro)
 
 	var ld uint8 = lora.LDRO_OFF
@@ -166,7 +166,7 @@ func (d *LoraModem) SetModulationParams(spreadFactor uint8, bandwidth physic.Fre
 	cr, ok := crToByte[codingRate]
 	if !ok {
 		cr = lora.CR4_5
-		log.Warn("Unsupported codin rate", "codingRate", codingRate)
+		log.Warn("Unsupported coding rate", "codingRate", codingRate)
 		log.Warn("Setting Coding Rate to 4/5")
 	}
 
@@ -195,12 +195,12 @@ func (d *LoraModem) SetModulationParams(spreadFactor uint8, bandwidth physic.Fre
 		return fmt.Errorf("Could not set modulation params [% X]: %w", commands, err)
 	}
 
-	log.Info("Modulation params set")
+	log.Info("Modulation params set", "params", fmt.Sprintf("% X", commands))
 	return nil
 }
 
 func (d *LoraModem) SetPacketParams(PreambleLen uint16, headerType uint8, payloadLen uint8, crcType bool, invertIQ bool) error {
-	log := slog.With("func", "LoraModem.SetModulationParams()", "params", "(uint8, physic.Frequency, uint8, bool)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.SetModulationParams()", "params", "(uint8, physic.Frequency, uint8, bool)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa packet params", "headerType", headerType, "payloadLen", payloadLen, "crc", crcType, "invertIQ", invertIQ)
 
 	var crc uint8 = lora.CrcOff
@@ -227,12 +227,12 @@ func (d *LoraModem) SetPacketParams(PreambleLen uint16, headerType uint8, payloa
 		return fmt.Errorf("Could not set packet params [% X]: %w", commands, err)
 	}
 
-	log.Info("Packet params set")
+	log.Info("Packet params set", "params", fmt.Sprintf("% X", commands))
 	return nil
 }
 
 func (d *LoraModem) SetDioIrqParams(irqMask uint16) error {
-	log := slog.With("func", "LoraModem.SetDioIrqParams()", "params", "(uint16)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.SetDioIrqParams()", "params", "(uint16)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Set LoRa DIO IRQ params")
 
 	mask := lora.IrqTxDone | lora.IrqRxDone | lora.IrqTimeout | lora.IrqCrcErr
@@ -249,6 +249,6 @@ func (d *LoraModem) SetDioIrqParams(irqMask uint16) error {
 		return fmt.Errorf("Could not set DIO IRQ params [% X]: %w", commands, err)
 	}
 
-	log.Info("DIO IRQ params set")
+	log.Info("DIO IRQ params set", "params", fmt.Sprintf("% X", commands))
 	return nil
 }
