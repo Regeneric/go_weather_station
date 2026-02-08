@@ -62,7 +62,7 @@ func New(connection spi.Conn, cfg *lora.Config) (*LoraModem, error) {
 	if read, err := modem.ReadRegister(lora.RegLoraSyncWordMsb, 2); err != nil {
 		return nil, err
 	} else {
-		log.Info("Read register success", "syncWord", read)
+		log.Info("Read register success", "syncWord", fmt.Sprintf("% X", read))
 	}
 
 	return modem, nil
