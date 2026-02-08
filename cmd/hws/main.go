@@ -8,17 +8,21 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Regeneric/go_weather_station/internal/app/mosquitto"
 	"github.com/Regeneric/go_weather_station/internal/bus/i2c"
 	"github.com/Regeneric/go_weather_station/internal/bus/onewire"
 	spis "github.com/Regeneric/go_weather_station/internal/bus/spi"
+	"github.com/Regeneric/go_weather_station/internal/comm/sx1262"
 	"github.com/Regeneric/go_weather_station/internal/config"
 	"github.com/Regeneric/go_weather_station/internal/sensors/bme280"
+	"github.com/Regeneric/go_weather_station/internal/utils"
 	"github.com/Regeneric/go_weather_station/pkg/model/bme"
+	"github.com/Regeneric/go_weather_station/pkg/model/lora"
 	"github.com/Regeneric/go_weather_station/pkg/model/system"
+	"github.com/mcuadros/go-defaults"
+	"periph.io/x/conn/v3/spi"
 	"periph.io/x/host/v3"
 )
-
-type SystemSnapshot map[string]interface{}
 
 func main() {
 	// ************************************************************************
@@ -36,7 +40,7 @@ func main() {
 
 	go func() { <-sigChan; cancel() }() // Wait for Ctrl + C, basically
 
-	mqttClient := MQTTInit()
+	mqttClient := mosquitto.MQTTInit()
 
 	// ************************************************************************
 	// = Logger ===
@@ -175,20 +179,62 @@ func main() {
 	}
 	// ------------------------------------------------------------------------
 
+	// ************************************************************************
+	// = SX1262 ===
+	// ------------------------------------------------------------------------
+	loraConnection, err := hkSPI0.Connect(config.SPISpeed, spi.Mode0, 8)
+	if err != nil {
+		slog.Warn("Failed to establish SPI connection to LoRa module. Only local sensors will be available", "err", err)
+	}
+
+	hkSX1262_0_GPIO := lora.Pins{
+		Reset: config.SX1262ResetPin,
+		Busy:  config.SX1262BusyPin,
+		DIO:   config.SX1262DIO1Pin,
+		CS:    config.SX1262CSPin,
+		TxEn:  config.SX1262TxEnPin,
+		// RxEn:  config.SX1262RxEnPin,
+	}
+
+	hkSX1262_0_Config := lora.Config{
+		Enable:      config.SX1262Enable,
+		Frequency:   config.SX1262Frequency,
+		Bandwidth:   config.SX1262Bandwidth,
+		SF:          config.SX1262SpreadingFactor,
+		CR:          config.SX1262CodingRate,
+		LDRO:        config.SX1262LowDataRateOptimize,
+		DC_DC:       config.SX1262DC_DC,
+		PreambleLen: config.SX1262PreambleLength,
+		PayloadLen:  config.SX1262PayloadLength,
+		CRCType:     config.SX1262CRCType,
+		InvertIQ:    config.SX1262InvertIQ,
+		SyncWord:    config.SX1262SyncWord,
+		TXPower:     config.SX1262TransmitPower,
+		Pins:        &hkSX1262_0_GPIO,
+	}
+	defaults.SetDefaults(&hkSX1262_0_Config)
+
+	hkSX1262_0, err := sx1262.New(loraConnection, &hkSX1262_0_Config)
+	if err != nil {
+		slog.Warn("Failed to initialize LoRa module. Only local sensors will be available", "err", err)
+	}
+	defer hkSX1262_0.Close()
+	// ------------------------------------------------------------------------
+
 	// - System Settings ------
-	systemState := make(SystemSnapshot)
+	systemState := make(utils.SystemSnapshot)
 	inputQueue := make(chan system.SensorPacket, 50)
-	outputQueue := make(chan SystemSnapshot, 5)
+	outputQueue := make(chan utils.SystemSnapshot, 5)
 
 	processTicker := time.NewTicker(2 * time.Second) // 2 Hz system wide polling rate
 	defer processTicker.Stop()
 
-	go MQTTPublish(outputQueue, mqttClient) // - Process Data ----
+	go mosquitto.MQTTPublish(outputQueue, mqttClient) // - Process Data ----
 	// ------------------------
 
 	// - BME280 ----
-	NormalizeQueue(hkBME280_0_Data, inputQueue, "BME280_0")
-	NormalizeQueue(hkBME280_1_Data, inputQueue, "BME280_1")
+	utils.NormalizeQueue(hkBME280_0_Data, inputQueue, "BME280_0")
+	utils.NormalizeQueue(hkBME280_1_Data, inputQueue, "BME280_1")
 
 	go bme280.Run(ctx, &hkBME280_0_Params, hkBME280_0_Data)
 	go bme280.Run(ctx, &hkBME280_1_Params, hkBME280_1_Data)
@@ -204,7 +250,7 @@ func main() {
 			systemState[packet.SourceID] = packet
 
 		case <-processTicker.C:
-			snapshot := make(SystemSnapshot)
+			snapshot := make(utils.SystemSnapshot)
 			for i, v := range systemState {
 				snapshot[i] = v
 			}

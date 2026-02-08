@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/Regeneric/go_weather_station/internal/config"
 	"periph.io/x/conn/v3/physic"
 	"periph.io/x/conn/v3/uart"
 	"periph.io/x/conn/v3/uart/uartreg"
@@ -13,6 +14,11 @@ import (
 func Init(device string, baudRate int) (uart.PortCloser, error) {
 	log := slog.With("func", "Init", "params", "(string, int)", "package", "bus", "module", "uart")
 	log.Info("Initializing UART interface", "device", device, "baud", baudRate)
+
+	if config.UARTEnable == false {
+		log.Warn("UART has been disabled in the config file!", "enable", config.UARTEnable)
+		return nil, nil
+	}
 
 	if _, err := host.Init(); err != nil {
 		return nil, fmt.Errorf("[UART] Host init failed: %w", err)

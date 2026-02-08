@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"time"
@@ -6,6 +6,8 @@ import (
 	"github.com/Regeneric/go_weather_station/pkg/model/bme"
 	"github.com/Regeneric/go_weather_station/pkg/model/system"
 )
+
+type SystemSnapshot map[string]interface{}
 
 const (
 	SensorType             = iota // 0

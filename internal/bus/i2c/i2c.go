@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/Regeneric/go_weather_station/internal/config"
 	"periph.io/x/conn/v3/i2c"
 	"periph.io/x/conn/v3/i2c/i2creg"
 	"periph.io/x/host/v3"
@@ -12,6 +13,11 @@ import (
 func Init(device string) (i2c.BusCloser, error) {
 	log := slog.With("func", "Init", "params", "(string)", "package", "bus", "module", "i2c")
 	log.Info("Initializing I2C bus", "device", device)
+
+	if config.I2CEnable == false {
+		log.Warn("I2C has been disabled in the config file!", "enable", config.I2CEnable)
+		return nil, nil
+	}
 
 	// Load drivers for RPi
 	if _, err := host.Init(); err != nil {

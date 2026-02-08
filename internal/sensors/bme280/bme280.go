@@ -7,6 +7,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/Regeneric/go_weather_station/internal/config"
 	"github.com/Regeneric/go_weather_station/pkg/model/bme"
 	"periph.io/x/conn/v3/i2c"
 )
@@ -313,6 +314,11 @@ func AverageData(data []*bme.Data) bme.Data {
 func Run(ctx context.Context, params *bme.Params, queue chan<- bme.Data) {
 	log := slog.With("func", "Run", "params", "(context.Context, *bme.Params, chan<- bme.Data)", "package", "sensors", "module", "bme280")
 	log.Debug("Prepare, initialize and run sensor")
+
+	if config.BME280Enable == false {
+		log.Warn("BME280 has been disabled in the config file!", "enable", config.BME280Enable)
+		return
+	}
 
 	// Error loop - if we cannot initilize sensor, wait 10 seconds and retry
 	for {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/Regeneric/go_weather_station/internal/config"
 	"periph.io/x/conn/v3/spi"
 	"periph.io/x/conn/v3/spi/spireg"
 	"periph.io/x/host/v3"
@@ -12,6 +13,11 @@ import (
 func Init(device string) (spi.PortCloser, error) {
 	log := slog.With("func", "Init", "params", "(string)", "package", "bus", "module", "spis")
 	log.Info("Initializing SPI bus", "device", device)
+
+	if config.SPIEnable == false {
+		log.Warn("SPI has been disabled in the config file!", "enable", config.SPIEnable)
+		return nil, nil
+	}
 
 	// Load drivers for RPi
 	if _, err := host.Init(); err != nil {
