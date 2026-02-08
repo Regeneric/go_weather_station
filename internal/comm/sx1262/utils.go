@@ -92,7 +92,7 @@ func (d *LoraModem) Write(w []uint8, r []uint8, timeout ...<-chan time.Time) err
 }
 
 func (d *LoraModem) WriteRegister(address uint16, data []uint8) error {
-	log := slog.With("func", "LoraModem.WriteRegister()", "params", "(uint16, []uint8)", "package", "comm", "module", "sx1262")
+	log := slog.With("func", "LoraModem.WriteRegister()", "params", "(uint16, []uint8)", "return", "(error)", "package", "comm", "module", "sx1262")
 	log.Debug("Write data to modem register", "address", address)
 
 	commands := append([]uint8{
@@ -106,4 +106,25 @@ func (d *LoraModem) WriteRegister(address uint16, data []uint8) error {
 	}
 
 	return nil
+}
+
+func (d *LoraModem) ReadRegister(address uint16, len uint8) ([]uint8, error) {
+	log := slog.With("func", "LoraModem.ReadRegister()", "params", "(uint16, uint8)", "return", "([]uint8, error)", "package", "comm", "module", "sx1262")
+	log.Debug("Read data from modem register", "address", address)
+
+	commands := []uint8{
+		lora.CmdReadRegister,
+		uint8(address >> 8),
+		uint8(address & 0xFF),
+		0x00,
+	}
+
+	totalLen := 1 + 2 + 1 + len // Command(1) + Address(2) + NOP(1) + Data(len)
+	r := make([]uint8, totalLen)
+
+	if err := d.Write(commands, r); err != nil {
+		return nil, fmt.Errorf("Could not write data [% X] to register at address 0x%02X: %w", commands, address, err)
+	}
+
+	return r[4:], nil
 }

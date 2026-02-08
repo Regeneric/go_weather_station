@@ -55,8 +55,14 @@ func New(connection spi.Conn, cfg *lora.Config) (*LoraModem, error) {
 	if err := modem.SetDioIrqParams(cfg.IRQMask); err != nil {
 		return nil, err
 	}
+
 	if err := modem.WriteRegister(lora.RegLoraSyncWordMsb, []uint8{uint8(cfg.SyncWord >> 8), uint8(cfg.SyncWord & 0xFF)}); err != nil {
 		return nil, err
+	}
+	if read, err := modem.ReadRegister(lora.RegLoraSyncWordMsb, 2); err != nil {
+		return nil, err
+	} else {
+		log.Info("Read register success", "syncWord", read)
 	}
 
 	return modem, nil
