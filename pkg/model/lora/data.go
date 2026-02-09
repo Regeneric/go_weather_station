@@ -1,168 +1,10 @@
 package lora
 
 import (
-	"sync"
-
 	"periph.io/x/conn/v3/gpio"
 	"periph.io/x/conn/v3/physic"
 	"periph.io/x/conn/v3/spi"
 )
-
-// type RegisterMap int
-//
-// const (
-// 	// SX127X LoRa Mode Register Map
-// 	RegFIFO                = 0x00
-// 	RegOpMode              = 0x01
-// 	RegFRFMsb              = 0x06
-// 	RegFRFMid              = 0x07
-// 	RegFRFLsb              = 0x08
-// 	RegPAConfig            = 0x09
-// 	RegPARamp              = 0x0A
-// 	RegOCP                 = 0x0B
-// 	RegLNA                 = 0x0C
-// 	RegFIFOAddrPtr         = 0x0D
-// 	RegFIFOTxBaseAddr      = 0x0E
-// 	RegFIFORxBaseAddr      = 0x0F
-// 	RegFIFORxCurrentAddr   = 0x10
-// 	RegIRQFlagsMask        = 0x11
-// 	RegIRQFlags            = 0x12
-// 	RegRxNbBytes           = 0x13
-// 	RegRxHeaderCntValueMsb = 0x14
-// 	RegRxHeaderCntValueLsb = 0x15
-// 	RegRxPktCntValueMsb    = 0x16
-// 	RegRxPktCntValueLsb    = 0x17
-// 	RegModebStat           = 0x18
-// 	RegPktSnrValue         = 0x19
-// 	RegPktRSSIValue        = 0x1A
-// 	RegRSSIVAlue           = 0x1B
-// 	RegHopChannel          = 0x1C
-// 	RegModemConfig1        = 0x1D
-// 	RegModemConfig2        = 0x1E
-// 	RegSymbTimeoutLsb      = 0x1F
-// 	RegPreambleMsb         = 0x20
-// 	RegPreambleLsb         = 0x21
-// 	RegPayloadLength       = 0x22
-// 	RegMaxPayloadLength    = 0x23
-// 	RegHopPeriod           = 0x24
-// 	RegFIFORxByteAddr      = 0x25
-// 	RegModemConfig3        = 0x26
-// 	RegFreqErrorMsb        = 0x28
-// 	RegFreqErrorMid        = 0x29
-// 	RegFreqErrorLsb        = 0x2A
-// 	RegRSSIWideband        = 0x2C
-// 	RegFreq1               = 0x2F
-// 	RegFreq2               = 0x30
-// 	RegDetectionOptimize   = 0x31
-// 	RegInvertiq            = 0x33
-// 	RegHighBwOptimize1     = 0x36
-// 	RegDetectionThreshold  = 0x37
-// 	RegSyncWord            = 0x39
-// 	RegHighBwOptimize2     = 0x3A
-// 	RegInvertiq2           = 0x3B
-// 	RegDioMapping1         = 0x40
-// 	RegDioMapping2         = 0x41
-// 	RegVersion             = 0x42
-// 	RegTcxO                = 0x4B
-// 	RegPaDAC               = 0x4D
-// 	RegFormerTemp          = 0x5B
-// 	RegAGCRef              = 0x61
-// 	RegAGCThresh1          = 0x62
-// 	RegAGCThresh2          = 0x63
-// 	RegAGCThresh3          = 0x64
-// 	RegPLL                 = 0x70
-// )
-
-// type IRQFlags int
-
-// const (
-// 	IRQCadDetected = 0x01
-// 	IRQFhssChange  = 0x02
-// 	IRQCadDone     = 0x04
-// 	IRQTxDone      = 0x08
-// 	IRQHeaderValid = 0x10
-// 	IRQCrcErr      = 0x20
-// 	IRQRxDone      = 0x40
-// 	IRQRxTimeout   = 0x80
-// )
-
-// type Status int
-
-// const (
-// 	StatusDefault      = 0
-// 	StatusTxWait       = 1
-// 	StatuxTxTimeout    = 2
-// 	StatusTxDone       = 3
-// 	StatusRxWait       = 4
-// 	StatusRxContinuous = 5
-// 	StatusRxTimeout    = 6
-// 	StatusRxDone       = 7
-// 	StatusHeaderErr    = 8
-// 	StatusCrcErr       = 9
-// 	StatusCadWait      = 10
-// 	StatusCadDetected  = 11
-// 	StatusCadDone      = 12
-// )
-
-// type Mode int
-
-// const (
-// 	ModeSleep        = 0x00 // sleep
-// 	ModeStandby      = 0x01 // standby
-// 	ModeTx           = 0x03 // transmit
-// 	ModeRxContinuous = 0x05 // continuous receive
-// 	ModeRxSingle     = 0x06 // single receive
-// 	ModeCad          = 0x07 // channel activity detection (CAD)
-// )
-
-// type Params int
-
-// const (
-// 	// Modem options
-// 	FSKModem  = 0x00 // GFSK packet type
-// 	LoRaModem = 0x01 // LoRa packet type
-// 	OOKModem  = 0x02 // OOK packet type
-
-// 	// Long range mode and modulation type
-// 	LongRangeMode = 0x80 // GFSK packet type
-// 	ModulationOOK = 0x20 // OOK packet type
-// 	ModulationFSK = 0x00 // LoRa packet type
-
-// 	// Rx operation mode
-// 	RxSingle     = 0x000000 // Rx timeout duration: no timeout (Rx single mode)
-// 	RxContinuous = 0xFFFFFF // Rx timeout duration: infinite (Rx continuous mode)
-
-// 	// Tx power options
-// 	TxPowerRfo     = 0x00 // Output power is limited to +14 dBm
-// 	TxPowerPaBoost = 0x80 // Output power is limited to +20 dBm
-
-// 	// RX gain options
-// 	RxGainPowerSaving = 0x00 // Gain used in Rx mode: power saving gain (default)
-// 	RxGainBoosted     = 0x01 // Gain used in Rx mode: boosted gain
-// 	RxGainAuto        = 0x00 // Option enable auto gain controller (AGC)
-
-// 	// Header type
-// 	HeaderExplicit = 0x00 // Explicit header mode
-// 	HeaderImplicit = 0x01 // Implicit header mode
-
-// 	// LoRa syncword
-// 	SyncwordLoraWAN = 0x34 // Reserved LoRaWAN syncword
-
-// 	// Oscillator options
-// 	OscCrystal = 0x00 // Crystal oscillator with external crystal
-// 	OscTcx0    = 0x10 // External clipped sine TCXO AC-connected to XTA pin
-
-// 	// DIO Mapping
-// 	DIO0RxDone  = 0x00 // Set DIO0 interrupt for: RX done
-// 	DIO0TxDone  = 0x40 // Set DIO0 interrupt for: TX done
-// 	DIO0CadDone = 0x80 // Set DIO0 interrupt for: CAD done
-
-// 	// Rssi offset
-// 	RssiOffsetLf  = 164   // Low band frequency RSSI offset
-// 	RssiOffsetHf  = 157   // High band frequency RSSI offset
-// 	RssiOffset    = 139   // Frequency RSSI offset for SX1272
-// 	BandThreshold = 525e6 // Threshold between low and high band frequency
-// )
 
 type Params int
 
@@ -197,6 +39,7 @@ const (
 	TxSingle     = 0x000000 // No timeout (Tx single mode)
 	RxSingle     = 0x000000 // No timeout (Rx single mode)
 	RxContinuous = 0xFFFFFF // Infinite (Rx continuous mode)
+	RxNoTimeout  = -1
 
 	// SetRegulatorMode
 	RegulatorLdo  = 0x00 // LOD (default)
@@ -426,6 +269,7 @@ const (
 	CmdReadRegister          = 0x1D
 	CmdWriteBuffer           = 0x0E
 	CmdReadBuffer            = 0x1E
+	CmdGetBufferStatus       = 0x13
 	CmdSetDioIrqParams       = 0x08
 	CmdGetIrqStatus          = 0x12
 	CmdClearIrqStatus        = 0x02
@@ -477,15 +321,12 @@ type Config struct {
 }
 
 type Device struct {
-	SPI               spi.Conn
-	Reset             gpio.PinOut
-	Busy              gpio.PinIn
-	CS                gpio.PinOut
-	DIO               gpio.PinIn
-	TxEn              gpio.PinOut
-	RxEn              gpio.PinOut
-	Mu                sync.Mutex
-	BufferIndex       uint8
-	CurrentPayloadLen uint8
-	Config            *Config
+	SPI    spi.Conn
+	Reset  gpio.PinOut
+	Busy   gpio.PinIn
+	CS     gpio.PinOut
+	DIO    gpio.PinIn
+	TxEn   gpio.PinOut
+	RxEn   gpio.PinOut
+	Config *Config
 }

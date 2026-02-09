@@ -36,8 +36,9 @@ const (
 // --- Communication -------------------------------------------------------
 const (
 	I2CEnable = false
-	HardI2C   = "1" // /dev/i2c-1
-	SoftI2C   = "3" // /dev/i2c-3
+	I2COne    = "0" // /dev/i2c-0
+	I2CTwo    = "1" // /dev/i2c-1
+	I2CThree  = "3" // /dev/i2c-3 - software
 )
 
 const (

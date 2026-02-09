@@ -199,9 +199,9 @@ func (d *LoraModem) SetModulationParams(spreadFactor uint8, bandwidth physic.Fre
 	return nil
 }
 
-func (d *LoraModem) SetPacketParams(PreambleLen uint16, headerType uint8, payloadLen uint8, crcType bool, invertIQ bool) error {
+func (d *LoraModem) SetPacketParams(preambleLen uint16, headerType uint8, payloadLen uint8, crcType bool, invertIQ bool) error {
 	log := slog.With("func", "LoraModem.SetModulationParams()", "params", "(uint8, physic.Frequency, uint8, bool)", "return", "(error)", "package", "comm", "module", "sx1262")
-	log.Debug("Set LoRa packet params", "headerType", headerType, "payloadLen", payloadLen, "crc", crcType, "invertIQ", invertIQ)
+	log.Debug("Set LoRa packet params", "preambleLen", preambleLen, "headerType", fmt.Sprintf("% X", headerType), "payloadLen", payloadLen, "crc", crcType, "invertIQ", invertIQ)
 
 	var crc uint8 = lora.CrcOff
 	if crcType {
@@ -216,8 +216,8 @@ func (d *LoraModem) SetPacketParams(PreambleLen uint16, headerType uint8, payloa
 	// 12-E-32-C-S
 	commands := []uint8{
 		lora.CmdSetPacketParams,   // 12
-		uint8(PreambleLen >> 8),   // MSB
-		uint8(PreambleLen & 0xFF), // LSB
+		uint8(preambleLen >> 8),   // MSB
+		uint8(preambleLen & 0xFF), // LSB
 		headerType, payloadLen,    // E-32
 		crc, iiq, // C-S
 		0, 0, 0,
@@ -233,7 +233,7 @@ func (d *LoraModem) SetPacketParams(PreambleLen uint16, headerType uint8, payloa
 
 func (d *LoraModem) SetDioIrqParams(irqMask uint16) error {
 	log := slog.With("func", "LoraModem.SetDioIrqParams()", "params", "(uint16)", "return", "(error)", "package", "comm", "module", "sx1262")
-	log.Debug("Set LoRa DIO IRQ params")
+	log.Debug("Set LoRa DIO IRQ params", "irqMask", fmt.Sprintf("% X", irqMask))
 
 	mask := lora.IrqTxDone | lora.IrqRxDone | lora.IrqTimeout | lora.IrqCrcErr
 	commands := []uint8{
@@ -250,5 +250,110 @@ func (d *LoraModem) SetDioIrqParams(irqMask uint16) error {
 	}
 
 	log.Info("DIO IRQ params set", "params", fmt.Sprintf("% X", commands))
+	return nil
+}
+
+func (d *LoraModem) SetRx(rxMode uint32) error {
+	log := slog.With("func", "LoraModem.SetRx()", "params", "(uint32)", "return", "(error)", "package", "comm", "module", "sx1262")
+	log.Debug("Set LoRa RX mode", "mode", fmt.Sprintf("% X", rxMode))
+
+	commands := []uint8{
+		lora.CmdSetRx,
+		uint8(rxMode >> 16 & 0xFF),
+		uint8(rxMode >> 8 & 0xFF),
+		uint8(rxMode & 0xFF),
+	}
+
+	if err := d.Write(commands, nil); err != nil {
+		return fmt.Errorf("Could not set RX mode [% X]: %w", commands, err)
+	}
+
+	log.Info("RX mode set", "params", fmt.Sprintf("% X", commands))
+	return nil
+}
+
+func (d *LoraModem) GetIrqStatus() (uint16, error) {
+	log := slog.With("func", "LoraModem.GetIrqStatus()", "params", "([]uint8)", "return", "(error)", "package", "comm", "module", "sx1262")
+	log.Debug("Get LoRa IRQ status")
+
+	commands := []uint8{lora.CmdGetIrqStatus, 0, 0, 0}
+	r := make([]uint8, len(commands))
+
+	if err := d.Write(commands, r); err != nil {
+		return 0, fmt.Errorf("Could not write data [% X]: %w", commands, err)
+	}
+	status := uint16(r[2])<<8 | uint16(r[3])
+
+	log.Info("Got IRQ status", "status", fmt.Sprintf("% X", status))
+	return status, nil
+}
+
+func (d *LoraModem) GetRxBufferStatus() (*RxBufferStatus, error) {
+	log := slog.With("func", "LoraModem.GetRxBufferStatus()", "params", "(-)", "return", "(*RxBufferStatus, error)", "package", "comm", "module", "sx1262")
+	log.Debug("Get LoRa RX buffer satus status")
+
+	totalLen := 1 + 1 + 1 + 1 // OpCode(1) + NOP(1) + NOP(1) + NOP(1)
+	r := make([]uint8, totalLen)
+	w := make([]uint8, totalLen)
+
+	w[0] = lora.CmdGetBufferStatus
+
+	if err := d.Write(w, r); err != nil {
+		return nil, fmt.Errorf("Could not write data [% X]: %w", w, err)
+	}
+
+	status := RxBufferStatus{
+		PayloadLengthRx:      r[2],
+		RxStartBufferPointer: r[3],
+	}
+
+	log.Info("Got RX buffer status", "status", fmt.Sprintf("% X", r[2:]))
+	return &status, nil
+}
+
+func (d *LoraModem) ReadBuffer() ([]uint8, error) {
+	log := slog.With("func", "LoraModem.ReadBuffer()", "params", "(uint8, uint8)", "return", "([]uint8, error)", "package", "comm", "module", "sx1262")
+	log.Debug("Read LoRa buffer")
+
+	rxBuffer, err := d.GetRxBufferStatus()
+	if err != nil {
+		return nil, err
+	}
+
+	offset := rxBuffer.RxStartBufferPointer
+	bytes := rxBuffer.PayloadLengthRx
+
+	totalLen := 1 + 1 + 1 + bytes // OpCode(1) + Offset(1) + NOP(1) + Data(bytes)
+	r := make([]uint8, totalLen)
+	w := make([]uint8, totalLen)
+
+	w[0] = lora.CmdReadBuffer
+	w[1] = offset
+	w[2] = 0x00
+
+	if err := d.Write(w, r); err != nil {
+		return nil, fmt.Errorf("Could not write data [% X]: %w", w, err)
+	}
+	data := r[3:]
+
+	log.Info("Read buffer successfull", "data", fmt.Sprintf("% X", data))
+	return data, nil
+}
+
+func (d *LoraModem) ClearIrqStatus(irqMask uint16) error {
+	log := slog.With("func", "LoraModem.ClearIrqStatus()", "params", "(uint16)", "return", "(error)", "package", "comm", "module", "sx1262")
+	log.Debug("Clear IRQ status", "irq", fmt.Sprintf("% X", irqMask))
+
+	commands := []uint8{
+		lora.CmdClearIrqStatus,
+		uint8(irqMask >> 8),   // MSB
+		uint8(irqMask & 0xFF), // LSB
+	}
+
+	if err := d.Write(commands, nil); err != nil {
+		return fmt.Errorf("Could not write data [% X]: %w", commands, err)
+	}
+
+	log.Info("IRQ status cleared")
 	return nil
 }

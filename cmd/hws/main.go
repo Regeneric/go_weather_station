@@ -58,30 +58,30 @@ func main() {
 	// ************************************************************************
 	// = I2C ===
 	// ------------------------------------------------------------------------
-	hkI2C1, err := i2c.Init(config.HardI2C)
+	hkI2C1, err := i2c.Init(config.I2COne)
 	if err != nil {
-		slog.Error("Failed to initialize I2C bus", "bus", "i2c-"+config.HardI2C, "err", err)
+		slog.Error("Failed to initialize I2C bus", "bus", "i2c-"+config.I2COne, "err", err)
 	} else {
-		slog.Debug("I2C bus initialized successfully", "bus", "i2c-"+config.HardI2C)
+		slog.Debug("I2C bus initialized successfully", "bus", "i2c-"+config.I2COne)
 
 		defer func() {
-			slog.Debug("Closing I2C bus...", "bus", "i2c-"+config.HardI2C)
+			slog.Debug("Closing I2C bus...", "bus", "i2c-"+config.I2COne)
 			if err := hkI2C1.Close(); err != nil {
-				slog.Error("Error closing I2C bus", "bus", "i2c-"+config.HardI2C, "err", err)
+				slog.Error("Error closing I2C bus", "bus", "i2c-"+config.I2COne, "err", err)
 			}
 		}()
 	}
 
-	hkI2C2, err := i2c.Init(config.SoftI2C)
+	hkI2C2, err := i2c.Init(config.I2CTwo)
 	if err != nil {
-		slog.Error("Failed to initialize I2C bus", "bus", "i2c-"+config.SoftI2C, "err", err)
+		slog.Error("Failed to initialize I2C bus", "bus", "i2c-"+config.I2CTwo, "err", err)
 	} else {
-		slog.Debug("I2C bus initialized successfully", "bus", "i2c-"+config.SoftI2C)
+		slog.Debug("I2C bus initialized successfully", "bus", "i2c-"+config.I2CTwo)
 
 		defer func() {
-			slog.Debug("Closing I2C bus...", "bus", "i2c-"+config.SoftI2C)
+			slog.Debug("Closing I2C bus...", "bus", "i2c-"+config.I2CTwo)
 			if err := hkI2C2.Close(); err != nil {
-				slog.Error("Error closing I2C bus", "bus", "i2c-"+config.SoftI2C, "err", err)
+				slog.Error("Error closing I2C bus", "bus", "i2c-"+config.I2CTwo, "err", err)
 			}
 		}()
 	}
@@ -224,6 +224,13 @@ func main() {
 
 	go mosquitto.MQTTPublish(outputQueue, mqttClient) // - Process Data ----
 	// ------------------------
+
+	// - SX1262 ----
+	hkSX1262_0.RxQueue = make(chan []uint8, 10)
+	hkSX1262_0.TxQueue = make(chan []uint8, 10)
+
+	go hkSX1262_0.Tx(hkSX1262_0.TxQueue, hkSX1262_0.RxQueue)
+	// -------------
 
 	// - BME280 ----
 	utils.NormalizeQueue(hkBME280_0_Data, inputQueue, "BME280_0")
