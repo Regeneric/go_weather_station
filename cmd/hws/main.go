@@ -191,7 +191,7 @@ func main() {
 	hkSX1262_0_Config := lora.Config{
 		Enable:         config.SX1262Enable,
 		Frequency:      config.SX1262Frequency,
-		FrequencyRange: []uint8{lora.CalImg430, lora.CalImg440}, // HACK - For now
+		FrequencyRange: []uint8{lora.CalImg430, lora.CalImg440}, // HACK - for now
 		Bandwidth:      config.SX1262Bandwidth,
 		SF:             config.SX1262SpreadingFactor,
 		CR:             config.SX1262CodingRate,
@@ -203,6 +203,7 @@ func main() {
 		InvertIQ:       config.SX1262InvertIQ,
 		SyncWord:       config.SX1262SyncWord,
 		TXPower:        config.SX1262TransmitPower,
+		IRQMask:        lora.IrqTxDone | lora.IrqRxDone | lora.IrqTimeout | lora.IrqCrcErr | lora.IrqHeaderErr, // Hack - for now
 		Pins:           &hkSX1262_0_GPIO,
 	}
 	defaults.SetDefaults(&hkSX1262_0_Config)
@@ -226,10 +227,7 @@ func main() {
 	// ------------------------
 
 	// - SX1262 ----
-	hkSX1262_0.RxQueue = make(chan []uint8, 10)
-	hkSX1262_0.TxQueue = make(chan []uint8, 10)
-
-	go hkSX1262_0.Tx(hkSX1262_0.TxQueue, hkSX1262_0.RxQueue)
+	go hkSX1262_0.Run(config.SX1262MaxRetryOnError)
 	// -------------
 
 	// - BME280 ----
@@ -261,7 +259,6 @@ func main() {
 				slog.Warn("Process queue is full")
 			}
 		// -------------------
-
 		case <-ctx.Done():
 			slog.Info("Stopping main loop...")
 			return

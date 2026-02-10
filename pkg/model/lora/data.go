@@ -164,8 +164,8 @@ const (
 	BW187200           = 0x12 // FSK bandwidth: 187.2 kHz DSB
 	BW234300           = 0x0A // FSK bandwidth: 234.3 kHz DSB
 	BW312000           = 0x19 // FSK bandwidth: 312 kHz DSB
-	BW373600           = 0x11 // FSK bandwidth: 373.3 kHz DSB
-	BW467000           = 0x09 // FSK bandwidth: 476 kHz DSB
+	BW373600           = 0x11 // FSK bandwidth: 373.6 kHz DSB
+	BW467000           = 0x09 // FSK bandwidth: 467 kHz DSB
 
 	// SetPacketParams
 	HeaderExplicit = 0x00 // LoRa header mode: explicit
@@ -282,8 +282,12 @@ const (
 	CmdSetModulationParams   = 0x8B
 	CmdSetPacketParams       = 0x8C
 	CmdGetStatus             = 0xC0
+	CmdGetStats              = 0x10
 	CmdGetDeviceErrors       = 0x17
 	CmdClearDeviceErrors     = 0x07
+	CmdSetBufferBaseAddress  = 0x8F
+
+	NOP = 0x00
 )
 
 type Pins struct {
@@ -296,26 +300,31 @@ type Pins struct {
 }
 
 type Config struct {
-	Enable         bool             `default:"true"`
-	Modem          uint8            `default:"1"`               // lora.LoraModem / lora.FskModem
-	Frequency      physic.Frequency `default:"433000000000000"` // I.e. 433000000000000 (mHz)
-	DeviceType     uint16           `default:"2"`               // lora.TxPowerSX1261 / lora.TxPowerSX1262
-	Bandwidth      physic.Frequency `default:"125000000000"`    // I.e. 125000000000  (mHz)
-	SF             uint8            `default:"7"`               // Spreading Factor (7-12)
-	CR             uint8            `default:"5"`               // Coding Rate (5 -> 4/5, 6 -> 4/6)
-	LDRO           bool             `default:"false"`           // Low Data Rate Optimize - true = on, false = off
-	DC_DC          bool             `default:"true"`            // DC-DC converter
-	HeaderType     uint8            `default:"0"`               // lora.HeaderExplicit / lora.HeaderImplicit
-	PreambleLen    uint16           `default:"12"`              // I.e. 12
-	PayloadLen     uint8            `default:"32"`              // I.e. 32
-	CRCType        bool             `default:"true"`            // true = on, false = off
-	InvertIQ       bool             `default:"false"`           // true = on, false = off
-	SyncWord       uint16           `default:"5156"`            // 0x3444 (Public Network) / 0x1424 (Private Network)
-	TXPower        int8             `default:"0"`               // SX1261: -17 - +14 (dBm) ; SX1262: -9 - +22 (dBm)
-	StandbyMode    uint8            `default:"0"`               // lora.StandbyRc / lora.StandbyXosc
-	FrequencyRange []uint8          `default:"-"`               // [lora.CalImg430, lora.CalImg440]
-	RampTime       uint8            `default:"5"`               // lora.PaRamp10 - lora.PaRamp3400u ; 0x05 = lora.PaRamp800u
-	IRQMask        uint16           `default:"1023"`            // 0x03FF = IRQ All
+	Enable          bool             `default:"true"`
+	Modem           uint8            `default:"1"`               // lora.LoraModem / lora.FskModem
+	Frequency       physic.Frequency `default:"433000000000000"` // I.e. 433000000000000 (mHz)
+	DeviceType      uint16           `default:"2"`               // lora.TxPowerSX1261 / lora.TxPowerSX1262
+	Bandwidth       physic.Frequency `default:"125000000000"`    // I.e. 125000000000  (mHz)
+	SF              uint8            `default:"7"`               // Spreading Factor (7-12)
+	CR              uint8            `default:"5"`               // Coding Rate (5 -> 4/5, 6 -> 4/6)
+	LDRO            bool             `default:"false"`           // Low Data Rate Optimize - true = on, false = off
+	DC_DC           bool             `default:"true"`            // DC-DC converter
+	HeaderType      uint8            `default:"0"`               // lora.HeaderExplicit / lora.HeaderImplicit
+	PreambleLen     uint16           `default:"12"`              // I.e. 12
+	PayloadLen      uint8            `default:"32"`              // I.e. 32
+	CRCType         bool             `default:"true"`            // true = on, false = off
+	InvertIQ        bool             `default:"false"`           // true = on, false = off
+	SyncWord        uint16           `default:"5156"`            // 0x3444 (Public Network) / 0x1424 (Private Network)
+	TXPower         int8             `default:"0"`               // SX1261: -17 - +14 (dBm) ; SX1262: -9 - +22 (dBm)
+	StandbyMode     uint8            `default:"0"`               // lora.StandbyRc / lora.StandbyXosc
+	FrequencyRange  []uint8          `default:"-"`               // [lora.CalImg430, lora.CalImg440]
+	RampTime        uint8            `default:"5"`               // lora.PaRamp10 - lora.PaRamp3400u ; 0x05 = lora.PaRamp800u
+	IRQMask         uint16           `default:"1023"`            // 0x03FF = IRQ All
+	RxQueueSize     uint8            `default:"10"`
+	TxQueueSize     uint8            `default:"10"`
+	TxBufferAddress uint8            `default:"0"`
+	RxBufferAddress uint8            `default:"128"`
+	TxTimeout       uint32           `default:"0"`
 
 	Pins *Pins
 }

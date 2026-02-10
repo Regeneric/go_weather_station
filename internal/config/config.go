@@ -73,7 +73,7 @@ const (
 const (
 	SX1262Enable              = true
 	SX1262Frequency           = 433 * physic.MegaHertz // 433 MHz
-	SX1262Bandwidth           = 500 * physic.KiloHertz // 125 kHz
+	SX1262Bandwidth           = 500 * physic.KiloHertz // 500 kHz
 	SX1262SpreadingFactor     = 7                      // SF
 	SX1262CodingRate          = 5                      // CR (5 -> 4/5, 6 -> 4/6, 7 -> 4/7, 8 -> 4/8)
 	SX1262LowDataRateOptimize = false                  // LDRO
@@ -89,6 +89,9 @@ const (
 	SX1262ResetPin            = "GPIO18"
 	SX1262BusyPin             = "GPIO20"
 	SX1262CSPin               = "GPIO21"
+	SX1262MaxRetryOnError     = 5
+	SX1262RxQueueSize         = 10
+	SX1262TxQueueSize         = 10
 )
 
 // -------------------------------------------------------------------------

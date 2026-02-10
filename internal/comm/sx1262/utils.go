@@ -127,3 +127,104 @@ func (d *LoraModem) ReadRegister(address uint16, length uint8) ([]uint8, error) 
 
 	return r[4:], nil
 }
+
+func (d *LoraModem) handleIRQ(retries uint8) {
+	log := slog.With("func", "handleIRQ()", "params", "(-)", "return", "(-)", "package", "comm", "module", "sx1262")
+	log.Debug("Handle LoRa IRQs")
+
+	irq, err := d.GetIrqStatus()
+	if err != nil {
+		log.Warn("Could not get LoRa IRQ status; possible hardware/SPI error", "err", err)
+		if err := d.ClearIrqStatus(lora.IrqAll); err != nil {
+			log.Warn("Could not clear LoRa IRQ status; Using force method...", "err", err)
+			d.forceClearIrq(retries)
+		}
+
+		return
+	}
+
+	if (irq & (lora.IrqCrcErr | lora.IrqHeaderErr)) > 0 {
+		log.Warn("Damaged packet received; dropping it...")
+		if err := d.ClearIrqStatus(lora.IrqAll); err != nil {
+			log.Warn("Could not clear LoRa IRQ status; Using force method...", "err", err)
+			d.forceClearIrq(retries)
+		}
+
+		return
+	}
+
+	if (irq & lora.IrqRxDone) > 0 {
+		payload, err := d.ReadBuffer()
+
+		if err != nil {
+			log.Warn("Could not read LoRa RX buffer; possible hardware/SPI error", "err", err)
+		} else if len(payload) > 0 {
+			log.Debug("Lora data received", "data", fmt.Sprintf("% X", payload))
+			select {
+			case d.RxQueue <- payload: // Sent to rxChannel queue
+			default:
+				log.Warn("RX channel queue is full")
+			}
+		}
+	}
+
+	if (irq & lora.IrqTxDone) > 0 {
+		if err := d.SetRx(lora.RxContinuous); err != nil {
+			log.Error("Could not enable LoRa RX mode", "mode", fmt.Sprintf("% X", lora.RxContinuous), "err", err)
+		}
+	}
+
+	if err := d.ClearIrqStatus(lora.IrqAll); err != nil {
+		log.Warn("Could not clear LoRa IRQ status; Using force method...", "err", err)
+		d.forceClearIrq(retries)
+	}
+}
+
+func (d *LoraModem) forceClearIrq(retries uint8) {
+	log := slog.With("func", "forceClearIrq()", "params", "(uint8)", "return", "(-)", "package", "comm", "module", "sx1262")
+	log.Debug("Force IRQ cleanup")
+
+	for i := range retries {
+		err := d.ClearIrqStatus(lora.IrqAll)
+		if err == nil {
+			return
+		}
+
+		log.Error("Could not force clear LoRa IRQ status; possible hardware/SPI error", "attempt", i+1, "err", err)
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	log.Error("Could not clear LoRa IRQ status; possible hardware/SPI error")
+}
+
+func (d *LoraModem) dataTransmit(data []uint8, offset uint8, timeout uint32) {
+	log := slog.With("func", "dataTransmit()", "params", "([]uint8)", "return", "(-)", "package", "comm", "module", "sx1262")
+	log.Debug("Transmit data")
+
+	if err := d.SetStandby(lora.StandbyRc); err != nil {
+		log.Error("Failed to set standby mode", "err", err)
+		return
+	}
+
+	if err := d.WriteBuffer(data, offset); err != nil {
+		log.Error("Failed to load data to buffer", "err", err)
+		return
+	}
+
+	err := d.SetPacketParams(
+		d.hw.Config.PreambleLen,
+		d.hw.Config.HeaderType,
+		uint8(len(data)),
+		d.hw.Config.CRCType,
+		d.hw.Config.InvertIQ,
+	)
+	if err != nil {
+		log.Error("Failed to set packet parameters", "err", err)
+		return
+	}
+
+	if err := d.SetTx(timeout); err != nil {
+		log.Error("Failed to transmit data", "err", err)
+		return
+	}
+}

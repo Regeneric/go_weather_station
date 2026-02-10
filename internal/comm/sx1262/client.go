@@ -3,7 +3,6 @@ package sx1262
 import (
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/Regeneric/go_weather_station/pkg/model/lora"
 	"periph.io/x/conn/v3/gpio"
@@ -24,7 +23,24 @@ func New(connection spi.Conn, cfg *lora.Config) (*LoraModem, error) {
 		return nil, fmt.Errorf("LoRa hardware setup failed: %w", err)
 	}
 
-	modem := LoraModem{hw: hw}
+	if cfg.RxQueueSize <= 0 {
+		cfg.RxQueueSize = 10
+		log.Warn("RX queue size cannot be less than 1; resized to 10", "size", cfg.RxQueueSize)
+	}
+
+	if cfg.TxQueueSize <= 0 {
+		cfg.TxQueueSize = 10
+		log.Warn("RX queue size cannot be less than 1; resized to 10", "size", cfg.TxQueueSize)
+	}
+
+	modem := LoraModem{
+		hw:        hw,
+		RxQueue:   make(chan []uint8, cfg.RxQueueSize),
+		TxQueue:   make(chan []uint8, cfg.TxQueueSize),
+		irqQueue:  make(chan struct{}, 1),
+		stopQueue: make(chan struct{}, 1),
+	}
+
 	if err := calibrationSequence(&modem); err != nil {
 		return nil, err
 	}
@@ -49,61 +65,42 @@ func (d *LoraModem) Close(params ...uint8) error {
 	return nil
 }
 
-func (d *LoraModem) Tx(tx chan []uint8, rx chan []uint8, rxMode ...uint32) {
-	log := slog.With("func", "Tx()", "params", "(chan []uint8, chan []uint8, ...uint32)", "return", "(-)", "package", "comm", "module", "sx1262")
-	log.Info("Wait for data")
+func (d *LoraModem) Run(retries uint8) {
+	log := slog.With("func", "Run()", "params", "(uint8)", "return", "(-)", "package", "comm", "module", "sx1262")
+	log.Info("Run LoRa modem manager")
 
-	var mode uint32 = lora.RxContinuous
-	if len(rxMode) > 0 {
-		mode = rxMode[0]
-	}
+	go func() {
+		for {
+			if d.hw.DIO.WaitForEdge(lora.RxNoTimeout) {
+				select {
+				case d.irqQueue <- struct{}{}: // 0 bytes struct as a signal, that DIO pin has changed its state
+				default: // IRQ queue is full, so we must wait for other routines to handle it anyway
+				}
+			}
+		}
+	}()
 
-	if err := d.SetRx(mode); err != nil {
-		log.Error("Could not enable LoRa RX mode", "mode", mode, "err", err)
-		return
+	if err := d.SetRx(lora.RxContinuous); err != nil {
+		log.Error("Could not enable LoRa RX mode", "mode", fmt.Sprintf("% X", lora.RxContinuous), "err", err)
 	}
 
 	for {
-		if d.hw.DIO.WaitForEdge(lora.RxNoTimeout) {
-			irq, err := d.GetIrqStatus()
-
-			if err != nil {
-				log.Warn("Could not get LoRa IRQ status; possible hardware/SPI error", "err", err)
-				time.Sleep(100 * time.Millisecond)
-				continue
-			}
-
-			if (irq & (lora.IrqCrcErr | lora.IrqHeaderErr)) > 0 {
-				log.Warn("Damaged packet received")
-				if err := d.ClearIrqStatus(lora.IrqAll); err != nil {
-					log.Warn("Could not clear LoRa IRQ status; possible hardware/SPI error", "err", err)
-					time.Sleep(100 * time.Millisecond)
-					continue
-				}
-			}
-
-			if (irq & lora.IrqRxDone) > 0 {
-				payload, err := d.ReadBuffer()
-
-				if err != nil {
-					log.Warn("Could not read LoRa RX buffer; possible hardware/SPI error", "err", err)
-					time.Sleep(100 * time.Millisecond)
-					continue
-				} else if len(payload) > 0 {
-					log.Debug("Lora data received", "data", fmt.Sprintf("% X", payload))
-					select {
-					case rx <- payload: // Sent to rxChannel queue
-					default:
-						log.Warn("RX channele queue is full")
-					}
-				}
-			}
-
-			if err := d.ClearIrqStatus(lora.IrqAll); err != nil {
-				log.Warn("Could not clear LoRa IRQ status; possible hardware/SPI error", "err", err)
-			}
+		select {
+		case <-d.irqQueue:
+			d.handleIRQ(retries)
+		case data := <-d.TxQueue:
+			d.dataTransmit(data, d.hw.Config.TxBufferAddress, d.hw.Config.TxTimeout)
+		case <-d.stopQueue:
+			return
 		}
 	}
+}
+
+func (d *LoraModem) Tx(data []uint8) {
+	log := slog.With("func", "Tx()", "params", "([]uint8)", "return", "(-)", "package", "comm", "module", "sx1262")
+	log.Debug("Transmit data over LoRa", "data", fmt.Sprintf("% X", data))
+
+	d.TxQueue <- data
 }
 
 func hardwareSetup(connection spi.Conn, cfg *lora.Config) (*lora.Device, error) {
@@ -176,6 +173,9 @@ func calibrationSequence(modem *LoraModem) error {
 	if err := modem.SetDioIrqParams(modem.hw.Config.IRQMask); err != nil {
 		return err
 	}
+	if err := modem.SetBufferBaseAddress(modem.hw.Config.TxBufferAddress, modem.hw.Config.RxBufferAddress); err != nil {
+		return err
+	}
 
 	if err := modem.WriteRegister(lora.RegLoraSyncWordMsb, []uint8{uint8(modem.hw.Config.SyncWord >> 8), uint8(modem.hw.Config.SyncWord & 0xFF)}); err != nil {
 		return err
@@ -183,7 +183,7 @@ func calibrationSequence(modem *LoraModem) error {
 	if read, err := modem.ReadRegister(lora.RegLoraSyncWordMsb, 2); err != nil {
 		return err
 	} else {
-		log.Debug("Read register success", "syncWord", fmt.Sprintf("% X", read))
+		log.Debug("Read register success", "syncWord", fmt.Sprintf("% X", read)) // Simple read test
 	}
 
 	return nil
