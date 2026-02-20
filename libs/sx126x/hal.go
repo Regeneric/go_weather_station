@@ -280,7 +280,7 @@ func (d *Device) ModulationConfig(spreadingFactor, codingRate uint8, bandwidth p
 		log.Warn("Unsupported coding rate", "codingRate", codingRate)
 		log.Warn("Setting Coding Rate to 4/5")
 	}
-	if d.Config.Modem == "lora" && cr == 4 {
+	if d.Config.Modem == "lora" && codingRate == 4 {
 		cr = uint8(LoRaCR_4_5)
 		log.Warn("Unsupported coding rate in LoRa mode", "codingRate", codingRate)
 		log.Warn("Setting Coding Rate to 4/5")
@@ -362,7 +362,7 @@ func (d *Device) ModulationLDRO(ldro bool) OptionsModulation {
 	}
 }
 
-type ConfigParams struct {
+type ConfigPacket struct {
 	PreambleLength uint16
 	HeaderType     uint8
 	PayloadLength  uint8
@@ -370,11 +370,11 @@ type ConfigParams struct {
 	IQMode         uint8
 }
 
-type OptionsParams func(*ConfigParams)
+type OptionsPacket func(*ConfigPacket)
 
-func (d *Device) ParamsConfig(preambleLength uint16, headerType LoRaHeaderType, payloadLength uint8, crc LoRaCrcMode, iqMode LoRaIQMode) OptionsParams {
+func (d *Device) PacketConfig(preambleLength uint16, headerType LoRaHeaderType, payloadLength uint8, crc LoRaCrcMode, iqMode LoRaIQMode) OptionsPacket {
 	// TODO : ADD FSK MODULATION CONFIG
-	return func(cfg *ConfigParams) {
+	return func(cfg *ConfigPacket) {
 		cfg.PreambleLength = preambleLength
 		cfg.HeaderType = uint8(headerType)
 		cfg.PayloadLength = payloadLength
@@ -383,32 +383,32 @@ func (d *Device) ParamsConfig(preambleLength uint16, headerType LoRaHeaderType, 
 	}
 }
 
-func (d *Device) ParamsPreLen(preambleLength uint16) OptionsParams {
-	return func(cfg *ConfigParams) {
+func (d *Device) PacketPreLen(preambleLength uint16) OptionsPacket {
+	return func(cfg *ConfigPacket) {
 		cfg.PreambleLength = preambleLength
 	}
 }
 
-func (d *Device) ParamsHT(headerType LoRaHeaderType) OptionsParams {
-	return func(cfg *ConfigParams) {
+func (d *Device) PacketHT(headerType LoRaHeaderType) OptionsPacket {
+	return func(cfg *ConfigPacket) {
 		cfg.HeaderType = uint8(headerType)
 	}
 }
 
-func (d *Device) ParamsPayLen(payloadLength uint8) OptionsParams {
-	return func(cfg *ConfigParams) {
+func (d *Device) PacketPayLen(payloadLength uint8) OptionsPacket {
+	return func(cfg *ConfigPacket) {
 		cfg.PayloadLength = payloadLength
 	}
 }
 
-func (d *Device) ParamsCRC(crc LoRaCrcMode) OptionsParams {
-	return func(cfg *ConfigParams) {
+func (d *Device) PacketCRC(crc LoRaCrcMode) OptionsPacket {
+	return func(cfg *ConfigPacket) {
 		cfg.CRC = uint8(crc)
 	}
 }
 
-func (d *Device) ParamsIQ(iqMode LoRaIQMode) OptionsParams {
-	return func(cfg *ConfigParams) {
+func (d *Device) PacketIQ(iqMode LoRaIQMode) OptionsPacket {
+	return func(cfg *ConfigPacket) {
 		cfg.IQMode = uint8(iqMode)
 	}
 }
@@ -495,4 +495,26 @@ func (d *Device) CADTimeout(timeout uint32) OptionsCAD {
 	return func(cfg *ConfigCAD) {
 		cfg.Timeout = timeout
 	}
+}
+
+func (d *Device) EnqueueTx(payload []uint8) error {
+	select {
+	case d.Queue.Tx <- payload:
+		return nil // All ok
+	default:
+		return fmt.Errorf("TX queue full - packet dropped")
+	}
+}
+
+func (d *Device) DequeueRx(timeout time.Duration) ([]uint8, error) {
+	select {
+	case payload := <-d.Queue.Rx:
+		return payload, nil
+	case <-time.After(timeout):
+		return nil, fmt.Errorf("RX timoeut - no data received")
+	}
+}
+
+func (d *Device) WaitForIRQ(timeout time.Duration) bool {
+	return d.gpio.dio.WaitForEdge(timeout)
 }

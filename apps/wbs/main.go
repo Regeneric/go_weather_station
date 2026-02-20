@@ -15,6 +15,7 @@ import (
 	"wbs/internal/hal/onewire"
 	"wbs/internal/hal/spi"
 	"wbs/internal/hal/uart"
+	"wbs/internal/lora"
 
 	"periph.io/x/host/v3"
 )
@@ -150,7 +151,22 @@ func main() {
 		slog.Error("Critical SX126x modem failure", "error", err)
 	}
 
-	_ = hkSX1262_0 // Temporary
+	hkLoRa_0, hkLoRa_0_Close, err := lora.Setup(hkSX1262_0, &cfg.LoRa)
+	defer hkLoRa_0_Close()
+
+	if err != nil {
+		slog.Error("Critical LoRa mode modem setup failure", "error", err)
+	}
+
+	_ = hkLoRa_0 // Temporary
+
+	// hkSX1262_1, err := sx126x.New(hkSPI_1, &cfg.LoRa)
+	// if err != nil {
+	// 	slog.Error("Critical SX126x modem failure", "error", err)
+	// }
+
+	// hkFSK_0, hkFSK_0_Close, err := fsk.Setup(hkSX1262_1, &cfg.LoRa)
+	// defer hkFSK_0_Close()
 	// ------------------------------------------------------------------------
 
 }

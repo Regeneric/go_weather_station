@@ -323,7 +323,7 @@ func (d *Device) SetRxTxFallbackMode(mode FallbackMode) error {
 }
 
 // # 13.3.1 SetDioIrqParams
-func (d *Device) SetDioIrqParams(irqMask uint16, dioIRQ ...uint16) error {
+func (d *Device) SetDioIrqParams(irqMask IrqMask, dioIRQ ...IrqMask) error {
 	log := slog.With("func", "Device.SetDioIrqParams()", "params", "(uint16, ...uint16)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Mask or unmask the IRQ which can be triggered by the device")
 
@@ -429,19 +429,22 @@ func (d *Device) SetRfFrequency(frequency physic.Frequency) error {
 	log := slog.With("func", "Device.SetRfFrequency()", "params", "(physic.Frequency)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Set the frequency of the RF frequency mode")
 
+	freqHz := uint64(frequency / physic.Hertz)
+	freqRf := (freqHz * 33554432) / 32000000 // Freq(Hz) * 2^25 / 32 MHz
+
 	commands := []uint8{
 		uint8(CmdSetRfFrequency),
-		uint8(frequency >> 24),
-		uint8(frequency >> 16),
-		uint8(frequency >> 8),
-		uint8(frequency),
+		uint8(freqRf >> 24),
+		uint8(freqRf >> 16),
+		uint8(freqRf >> 8),
+		uint8(freqRf),
 	}
 
 	if err := d.SPI.Tx(commands, nil); err != nil {
-		return fmt.Errorf("Could not set RF frequency %v: %w", frequency, err)
+		return fmt.Errorf("Could not set RF frequency [% X]: %w", commands, err)
 	}
 
-	log.Info("SX126x modem frequency set", "frequency", frequency)
+	log.Info("SX126x modem frequency set", "frequency", fmt.Sprintf("%d MHz", frequency/physic.MegaHertz))
 	return nil
 }
 
@@ -539,8 +542,6 @@ func (d *Device) SetModulationParams(opts ...OptionsModulation) error {
 		uint8(CmdSetModulationParams),
 		cfg.SpreadingFactor, cfg.Bandwidth,
 		cfg.CodingRate, cfg.LDRO,
-		OpCodeNop, OpCodeNop,
-		OpCodeNop, OpCodeNop,
 	}
 
 	if err := d.SPI.Tx(commands, nil); err != nil {
@@ -552,7 +553,7 @@ func (d *Device) SetModulationParams(opts ...OptionsModulation) error {
 }
 
 // # 13.4.6 SetPacketParams
-func (d *Device) SetPacketParams(opts ...OptionsParams) error {
+func (d *Device) SetPacketParams(opts ...OptionsPacket) error {
 	// TODO : ADD FSK MODULATION CONFIG
 	log := slog.With("func", "Device.SetPacketParams()", "params", "(...OptionsParams)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Set parameters of the packet handling block")
@@ -572,7 +573,7 @@ func (d *Device) SetPacketParams(opts ...OptionsParams) error {
 		iq = uint8(IqInverted)
 	}
 
-	cfg := &ConfigParams{
+	cfg := &ConfigPacket{
 		PreambleLength: d.Config.PreambleLength,
 		HeaderType:     headerType,
 		PayloadLength:  d.Config.PayloadLength,
@@ -590,7 +591,6 @@ func (d *Device) SetPacketParams(opts ...OptionsParams) error {
 		uint8(cfg.PreambleLength),
 		cfg.HeaderType, cfg.PayloadLength,
 		cfg.CRC, cfg.IQMode,
-		OpCodeNop, OpCodeNop, OpCodeNop,
 	}
 
 	if err := d.SPI.Tx(commands, nil); err != nil {

@@ -23,8 +23,10 @@ type Config struct {
 	SyncWord        uint16   `yaml:"sync_word" env:"SX126X_SYNC_WORD" env-default:"5156"` // Aka 0x1424
 	TransmitPower   int8     `yaml:"tx_power" env:"SX126X_TX_POWER" env-default:"0"`
 	StandbyMode     string   `yaml:"standby_mode" env:"SX126X_STANDBY_MODE" env-default:"rc"`
+	SleepMode       string   `yaml:"sleep_mode" env:"SX126X_SLEEP_MODE" env-default:"cold_start"`
 	FrequencyRange  []uint16 `yaml:"frequency_range" env:"SX126X_FREQ_RANGE" env-default:"430,440" env-separator:","`
 	RampTime        uint16   `yaml:"ramp_time" env:"SX126X_RAMP_TIME" env-default:"800"`
+	DIO2AsRfSwitch  bool     `yaml:"dio2_as_rf_switch" env:"SX126X_DIO2_AS_RF_SWITCH" env-default:"true"`
 	RxQueueSize     uint8    `yaml:"rx_queue_size" env:"SX126X_RX_QUEUE_SIZE" env-default:"10"`
 	TxQueueSize     uint8    `yaml:"tx_queue_size" env:"SX126X_TX_QUEUE_SIZE" env-default:"10"`
 	RxBufferAddress uint8    `yaml:"rx_buffer_address" env:"SX126X_RX_BUFFER_ADDRESS" env-default:"128"`
@@ -39,6 +41,7 @@ type Pins struct {
 	Busy  string `yaml:"busy" env:"SX126X_GPIO_BUSY" env-default:"GPIO20"`
 	DIO   string `yaml:"dio" env:"SX126X_GPIO_DIO" env-default:"GPIO16"`
 	TxEn  string `yaml:"tx_enable" env:"SX126X_GPIO_TX_EN" env-default:"GPIO6"`
+	RxEn  string `yaml:"rx_enable" env:"SX126X_GPIO_RX_EN"`
 	CS    string `yaml:"cs" env:"SX126X_GPIO_CS"`
 }
 
@@ -55,6 +58,7 @@ type pinsDirection struct {
 	busy  gpio.PinIn
 	dio   gpio.PinIn
 	txEn  gpio.PinOut
+	rxEn  gpio.PinOut
 	cs    gpio.PinOut
 }
 
@@ -88,9 +92,15 @@ type Status struct {
 	Error  DeviceError
 }
 
+type Queue struct {
+	Rx chan []uint8
+	Tx chan []uint8
+}
+
 type Device struct {
 	SPI    spi.Conn
 	Config *Config
 	Status Status
+	Queue  Queue
 	gpio   *pinsDirection
 }

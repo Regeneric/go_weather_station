@@ -88,10 +88,12 @@ lora:
   sync_word: 0x1424             # 0x1424 - private network ; 0x3444 - public network                           ; default: 0x1424
   tx_power: 0                   # -12 - +22 dBm                                                                ; default: 0 (dBm)
   standby_mode: "rc"            # rc / xosc                                                                    ; default: rc
+  sleep_mode: "warm_start"      # cold_start ; warm_start ; cold_start_rtc ; warm_start_rtc                    ; default: cold_start
   frequency_range:              # 430-440 ; 470-510 ; 779-787 ; 863-870 ; 902-928                              ; default: 430-440 (MHz)  
     - 430
     - 440
   ramp_time: 800                # 10 - 3400 us                                                                 ; default: 800 (us)
+  dio2_as_rf_switch: true       # Configure DIO2 so that it can be used to control an external RF switch       ; default: true
   rx_queue_size: 10             # Size of byte array channel                                                   ; default: 10
   tx_queue:size: 10             # Size of byte array channel                                                   ; default: 10
   rx_buffer_address: 128        # Start address of RX buffer (0-255)                                           ; default: 128
@@ -102,6 +104,7 @@ lora:
     busy: "GPIO20"              #                                                                              ; default: GPIO20
     dio: "GPIO16"               #                                                                              ; default: GPIO16
     tx_enable: "GPIO6"          #                                                                              ; default: GPIO6
+    rx_enable: ""               #                                                                              ; default: none
     cs: "GPIO21"                #                                                                              ; default: GPIO21
   cad:
     symbol_number: 2            # 1 - 16 symbols                                                               ; default: 2 (2 == 2^2 symbols)
