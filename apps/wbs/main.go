@@ -38,7 +38,7 @@ func main() {
 
 	go func() { <-sigChan; cancel() }() // Wait for Ctrl + C, basically
 
-	configPath := flag.String("config", "config.yml", "path to configuration file")
+	configPath := flag.String("config", "config.yaml", "path to configuration file")
 	flag.Parse()
 	// ------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ func main() {
 	// = SX1262 ===
 	// ------------------------------------------------------------------------
 	hkSX1262_0, err := sx126x.New(hkSPI_0, &cfg.LoRa)
-	if err != nil {
+	if err != nil || hkSX1262_0 == nil {
 		slog.Error("Critical SX126x modem failure", "error", err)
 	}
 

@@ -12,13 +12,27 @@ import (
 )
 
 type Config struct {
+	Logging Logging       `yaml:"logging"`
 	MQTT    MQTT          `yaml:"mqtt"`
 	SPI     SPI           `yaml:"spi"`
 	I2C     I2C           `yaml:"i2c"`
 	UART    UART          `yaml:"uart"`
 	OneWire OneWire       `yaml:"onewire"`
 	LoRa    sx126x.Config `yaml:"lora"`
+	BME280  BME280        `yaml:"bme280"`
+	DHT     DHT           `yaml:"dht"`
+	DS18B20 DS18B20       `yaml:"ds18b20"`
+	PMS5003 PMS5003       `yaml:"pms5003"`
 }
+
+// ************************************************************************
+// = Logging ===
+// ------------------------------------------------------------------------
+type Logging struct {
+	LogLevel string `yaml:"log_level"`
+}
+
+// ------------------------------------------------------------------------
 
 // ************************************************************************
 // = MQTT ===
@@ -43,10 +57,10 @@ type MQTT struct {
 // ------------------------------------------------------------------------
 type SPI struct {
 	Enable  bool                 `yaml:"enable" env:"SPI_ENABLE" env-default:"false"`
-	Devices map[string]SPIDevice `yaml:"device"`
+	Devices map[string]spiDevice `yaml:"device"`
 }
 
-type SPIDevice struct {
+type spiDevice struct {
 	Enable      bool     `yaml:"enable" env:"SPI_ENABLE" env-default:"false"`
 	Name        string   `yaml:"name" env:"SPI_DEVICE" env-default:"0"`
 	Speed       uint64   `yaml:"speed" env:"SPI_SPEED" env-default:"10000000"`
@@ -61,10 +75,10 @@ type SPIDevice struct {
 // ------------------------------------------------------------------------
 type I2C struct {
 	Enable  bool                 `yaml:"enable" env:"I2C_ENABLE" env-default:"false"`
-	Devices map[string]I2CDevice `yaml:"device"`
+	Devices map[string]i2cDevice `yaml:"device"`
 }
 
-type I2CDevice struct {
+type i2cDevice struct {
 	Enable bool   `yaml:"enable" env:"I2C_ENABLE" env-default:"false"`
 	Name   string `yaml:"name" env:"I2C_DEVICE" env-default:"0"`
 }
@@ -76,10 +90,10 @@ type I2CDevice struct {
 // ------------------------------------------------------------------------
 type UART struct {
 	Enable  bool                  `yaml:"enable" env:"UART_ENABLE" env-default:"false"`
-	Devices map[string]UARTDevice `yaml:"device"`
+	Devices map[string]uartDevice `yaml:"device"`
 }
 
-type UARTDevice struct {
+type uartDevice struct {
 	Enable     bool      `yaml:"enable" env:"UART_ENABLE" env-default:"false"`
 	Name       string    `yaml:"name" env:"UART_DEVICE" env-default:"0" env-separator:","`
 	Speed      uint64    `yaml:"speed" env:"UART_SPEED" env-default:"9600"`
@@ -96,12 +110,104 @@ type UARTDevice struct {
 // ------------------------------------------------------------------------
 type OneWire struct {
 	Enable  bool                     `yaml:"enable" env:"ONEWIRE_ENABLE" env-default:"false"`
-	Devices map[string]OneWireDevice `yaml:"device"`
+	Devices map[string]onewireDevice `yaml:"device"`
 }
 
-type OneWireDevice struct {
+type onewireDevice struct {
 	Enable bool   `yaml:"enable" env:"ONEWIRE_ENABLE" env-default:"false"`
 	Name   string `yaml:"name" env:"ONEWIRE_DEVICE" env-default:"1"`
+}
+
+// ------------------------------------------------------------------------
+
+// ************************************************************************
+// = BME280 ===
+// ------------------------------------------------------------------------
+type BME280 struct {
+	Enable  bool                    `yaml:"enable" env:"BME280_ENABLE" env-default:"false"`
+	Devices map[string]bme280Device `yaml:"device"`
+}
+
+type bme280Device struct {
+	Enable   bool   `yaml:"enable" env:"BME280_ENABLE" env-default:"false"`
+	Name     string `yaml:"name" env:"BME280_DEVICE"`
+	UseI2C   bool   `yaml:"use_i2c" env:"BME280_USE_I2C" env-default:"true"`
+	Address  uint8  `yaml:"address" env:"BME280_ADDRESS" env-default:"0x76"`
+	Location string `yaml:"location" env:"BME280_LOCATION"`
+}
+
+// ------------------------------------------------------------------------
+
+// ************************************************************************
+// = DHT ===
+// ------------------------------------------------------------------------
+type DHT struct {
+	Enable  bool                 `yaml:"enable" env:"DHT_ENABLE" env-default:"false"`
+	Devices map[string]dhtDevice `yaml:"device"`
+}
+
+type dhtDevice struct {
+	Enable   bool   `yaml:"enable" env:"DHT_ENABLE" env-default:"false"`
+	Name     string `yaml:"name" env:"DHT_NAME"`
+	Type     uint8  `yaml:"type" env:"DHT_TYPE" env-default:"20"`
+	Address  uint8  `yaml:"address" env:"DHT_ADDRESS" env-default:"56"` // Aka 0x38
+	Location string `yaml:"location" env:"DHT_LOCATION"`
+}
+
+// ------------------------------------------------------------------------
+
+// ************************************************************************
+// = DS18B20 ===
+// ------------------------------------------------------------------------
+type DS18B20 struct {
+	Enable  bool                     `yaml:"enable" env:"DS18B20_ENABLE" env-default:"false"`
+	Devices map[string]ds18b20Device `yaml:"device"`
+}
+
+type ds18b20Device struct {
+	Enable   bool   `yaml:"enable" env:"DS18B20_ENABLE" env-default:"false"`
+	Name     string `yaml:"name" env:"DS18B20_NAME"`
+	Location string `yaml:"location" env:"DS18B20_LOCATION"`
+}
+
+// ------------------------------------------------------------------------
+
+// ************************************************************************
+// = PMS5003 ===
+// ------------------------------------------------------------------------
+type PMS5003 struct {
+	Enable  bool                     `yaml:"enable" env:"PMS5003_ENABLE" env-default:"false"`
+	Devices map[string]pms5003Device `yaml:"device"`
+}
+
+type pms5003Device struct {
+	Enable               bool   `yaml:"enable" env:"PMS5003_ENABLE" env-default:"false"`
+	Name                 string `yaml:"name" env:"PMS5003_NAME"`
+	HumidityCompensation bool   `yaml:"humidity_compensation" env:"PMS5003_HUMIDITY_COMPENSATION" env-default:"false"`
+	UseDHT               bool   `yaml:"use_dht" env:"PMS5003_USE_DHT" env-default:"false"`
+	UseBME               bool   `yaml:"use_bme" env:"PMS5003_USE_BME" env-default:"false"`
+	NormalizeData        bool   `yaml:"normalize_data" env:"PMS5003_NORMALIZE_DATA" env-default:"false"`
+	Location             string `yaml:"location" env:"PMS5003_LOCATION"`
+}
+
+// ------------------------------------------------------------------------
+
+// ************************************************************************
+// = SGP30 ===
+// ------------------------------------------------------------------------
+type SGP30 struct {
+	Enable  bool                   `yaml:"enable" env:"SGP30_ENABLE" env-default:"false"`
+	Devices map[string]sgp30Device `yaml:"device"`
+}
+
+type sgp30Device struct {
+	Enable               bool   `yaml:"enable" env:"SGP30_ENABLE" env-default:"false"`
+	Name                 string `yaml:"name" env:"SGP30_NAME"`
+	HumidityCompensation bool   `yaml:"humidity_compensation" env:"SGP30_HUMIDITY_COMPENSATION" env-default:"false"`
+	UseDHT               bool   `yaml:"use_dht" env:"SGP30_USE_DHT" env-default:"false"`
+	UseBME               bool   `yaml:"use_bme" env:"SGP30_USE_BME" env-default:"false"`
+	NormalizeData        bool   `yaml:"normalize_data" env:"SGP30_NORMALIZE_DATA" env-default:"false"`
+	Location             string `yaml:"location" env:"SGP30_LOCATION"`
 }
 
 // ------------------------------------------------------------------------

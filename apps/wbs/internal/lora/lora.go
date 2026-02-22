@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"reflect"
 	"sx126x"
 	"time"
 
@@ -28,7 +29,7 @@ type Transceiver interface {
 	SetRxTxFallbackMode(mode sx126x.FallbackMode) error
 	SetDioIrqParams(irqMask sx126x.IrqMask, dioIRQ ...sx126x.IrqMask) error
 	GetIrqStatus() (uint16, error)
-	ClearIrqStatus(mask uint16) error
+	ClearIrqStatus(mask sx126x.IrqMask) error
 	SetDIO2AsRfSwitchCtrl(enable bool) error
 	SetDIO3AsTCXOCtrl(voltage sx126x.TcxoVoltage, timeout uint32) error
 	SetRfFrequency(frequency physic.Frequency) error
@@ -79,6 +80,10 @@ func Setup(modem Transceiver, cfg *sx126x.Config) (*Node, func(), error) {
 
 	if cfg.Enable == false {
 		return nil, func() {}, fmt.Errorf("LoRa modem disabled in the config")
+	}
+
+	if modem == nil || reflect.ValueOf(modem).IsNil() {
+		return nil, func() {}, fmt.Errorf("LoRa modem state improper")
 	}
 
 	cleanup := func() {

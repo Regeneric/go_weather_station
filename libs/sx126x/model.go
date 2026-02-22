@@ -97,7 +97,7 @@ const (
 )
 
 //go:generate stringer -type=TxRxTimeout
-type TxRxTimeout int32
+type TxRxTimeout uint32
 
 const (
 	// timeouts = timeout * 15.625 us (24-bit).
@@ -135,6 +135,7 @@ const (
 type CalibrationParam uint8
 
 const (
+	CalibNone     CalibrationParam = 0x00
 	CalibRC64k    CalibrationParam = 0x01
 	CalibRC13M    CalibrationParam = 0x02
 	CalibPLL      CalibrationParam = 0x04
@@ -159,7 +160,7 @@ const (
 
 const (
 	// Limit in dBm
-	TxMaxPowerSX1261 int8 = 14
+	TxMaxPowerSX1261 int8 = 15
 	TxMinPowerSX1261 int8 = -17
 	TxMaxPowerSX1262 int8 = 22
 	TxMinPowerSX1262 int8 = -9

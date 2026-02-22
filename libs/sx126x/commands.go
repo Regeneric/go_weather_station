@@ -224,9 +224,6 @@ func (d *Device) SetPaConfig(opts ...OptionsPa) error {
 	log.Debug("Differentiate the SX1261 from the SX1262")
 
 	cfg := &ConfigPa{TxPower: d.Config.TransmitPower, PaLut: 0x01} // PaLut should be always 0x01 for SX1261 and 1262
-	for _, opt := range opts {
-		opt(cfg)
-	}
 
 	switch d.Config.Type {
 	case "1261":
@@ -255,8 +252,13 @@ func (d *Device) SetPaConfig(opts ...OptionsPa) error {
 		return fmt.Errorf("Uknown LoRa modem type %v", d.Config.Type)
 	}
 
-	// Default values for given TX power
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
 	manualMode := len(opts) > 0
+
+	// Default values for given TX power
 	if !manualMode {
 		switch d.Config.Type {
 		case "1261":
@@ -327,6 +329,29 @@ func (d *Device) SetDioIrqParams(irqMask IrqMask, dioIRQ ...IrqMask) error {
 	log := slog.With("func", "Device.SetDioIrqParams()", "params", "(uint16, ...uint16)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Mask or unmask the IRQ which can be triggered by the device")
 
+	switch d.Config.Modem {
+	case "lora":
+		fskBits := IrqSyncWordValid
+		if irqMask&fskBits != 0 {
+			return fmt.Errorf("SyncWordValid IRQ available only in FSK mode")
+		}
+	case "fsk":
+		illegalBits := map[IrqMask]string{
+			IrqHeaderValid: "IrqHeaderValid",
+			IrqHeaderErr:   "IrqHeaderErr",
+			IrqCadDone:     "IrqCadDone",
+			IrqCadDetected: "IrqCadDetected",
+		}
+
+		for bit, name := range illegalBits {
+			if irqMask&bit != 0 {
+				return fmt.Errorf("%s IRQ available only in LoRa mode", name)
+			}
+		}
+	default:
+		return fmt.Errorf("Unknown modem type: %v", d.Config.Modem)
+	}
+
 	irqs := make([]uint8, 8) // IRQ mask + DIO1 + DIO2 + DIO3
 	irqs[0] = uint8(irqMask >> 8)
 	irqs[1] = uint8(irqMask)
@@ -358,6 +383,10 @@ func (d *Device) GetIrqStatus() (uint16, error) {
 	log := slog.With("func", "Device.GetIrqStatus()", "params", "(-)", "return", "(uint16, error)", "lib", "sx126x")
 	log.Debug("Returns value of the IRQ register")
 
+	if d.Config.Modem != "lora" && d.Config.Modem != "fsk" {
+		return 0, fmt.Errorf("Unknown modem type: %v", d.Config.Modem)
+	}
+
 	commands := []uint8{uint8(CmdGetIrqStatus), OpCodeNop, OpCodeNop, OpCodeNop}
 	rx := make([]uint8, len(commands))
 
@@ -371,11 +400,34 @@ func (d *Device) GetIrqStatus() (uint16, error) {
 }
 
 // # 13.3.4 ClearIrqStatus
-func (d *Device) ClearIrqStatus(mask uint16) error {
+func (d *Device) ClearIrqStatus(mask IrqMask) error {
 	log := slog.With("func", "Device.ClearIrqStatus()", "params", "(uint16)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Clear IRQ register mask")
 
-	commands := []uint8{uint8(CmdClearIrqStatus), uint8(mask >> 8), uint8(mask)}
+	switch d.Config.Modem {
+	case "lora":
+		fskBits := IrqSyncWordValid
+		if mask&fskBits != 0 {
+			return fmt.Errorf("SyncWordValid IRQ available only in FSK mode")
+		}
+	case "fsk":
+		illegalBits := map[IrqMask]string{
+			IrqHeaderValid: "IrqHeaderValid",
+			IrqHeaderErr:   "IrqHeaderErr",
+			IrqCadDone:     "IrqCadDone",
+			IrqCadDetected: "IrqCadDetected",
+		}
+
+		for bit, name := range illegalBits {
+			if mask&bit != 0 {
+				return fmt.Errorf("%s IRQ available only in LoRa mode", name)
+			}
+		}
+	default:
+		return fmt.Errorf("Unknown modem type: %v", d.Config.Modem)
+	}
+
+	commands := []uint8{uint8(CmdClearIrqStatus), OpCodeNop, uint8(mask >> 8), uint8(mask)}
 	if err := d.SPI.Tx(commands, nil); err != nil {
 		return fmt.Errorf("Could not clear IRQ register mask: %w", err)
 	}
@@ -430,7 +482,7 @@ func (d *Device) SetRfFrequency(frequency physic.Frequency) error {
 	log.Debug("Set the frequency of the RF frequency mode")
 
 	freqHz := uint64(frequency / physic.Hertz)
-	freqRf := (freqHz * 33554432) / 32000000 // Freq(Hz) * 2^25 / 32 MHz
+	freqRf := (freqHz * RfFrequencyNom) / RfFrequencyXtal // Freq(Hz) * 2^25 / 32 MHz
 
 	commands := []uint8{
 		uint8(CmdSetRfFrequency),
