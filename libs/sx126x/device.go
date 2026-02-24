@@ -32,8 +32,15 @@ type Config struct {
 	RxBufferAddress uint8    `yaml:"rx_buffer_address" env:"SX126X_RX_BUFFER_ADDRESS" env-default:"128"`
 	TxBufferAddress uint8    `yaml:"tx_buffer_address" env:"SX126X_TX_BUFFER_ADDRESS" env-default:"0"`
 	TransmitTimeout uint32   `yaml:"tx_timeout" env:"SX126X_TX_TIMEOUT" env-default:"0"`
+	FSK             *FSK     `yaml:"fsk"`
 	Pins            *Pins    `yaml:"pins"`
 	CAD             *CAD     `yaml:"cad"`
+}
+
+type FSK struct {
+	Bitrate            uint64  `yaml:"bitrate" env:"SX126X_FSK_BITRATE"`
+	PulseShape         float32 `yaml:"pulse_shape" env:"SX126X_FSK_PULSE_SHAPE"`
+	FrequencyDeviation uint64  `yaml:"frequency_deviation" env:"SX126X_FREQUENCY_DEVIATION"`
 }
 
 type Pins struct {

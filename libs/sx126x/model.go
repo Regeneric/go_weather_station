@@ -257,7 +257,6 @@ const (
 type LoRaCodingRate uint8
 
 const (
-	LoRaCR_4_4 LoRaCodingRate = 0x00 // 4/4 (no coding rate)
 	LoRaCR_4_5 LoRaCodingRate = 0x01 // 4/5
 	LoRaCR_4_6 LoRaCodingRate = 0x02 // 4/6
 	LoRaCR_4_7 LoRaCodingRate = 0x03 // 4/7
@@ -343,6 +342,11 @@ const (
 	PreambleDetLen16  FskPreambleDetector = 0x05 // FSK preabmle detector length: 16-bit
 	PreambleDetLen24  FskPreambleDetector = 0x06 // FSK preabmle detector length: 24-bit
 	PreambleDetLen32  FskPreambleDetector = 0x07 // FSK preabmle detector length: 32-bit
+)
+
+const (
+	FskBitrateMin uint64 = 600
+	FskBitrateMax uint64 = 300000
 )
 
 //go:generate stringer -type=FskAddressComp

@@ -59,7 +59,7 @@ type Transceiver interface {
 	ReadBuffer(offset uint8, data []uint8) (uint8, error)
 
 	PaConfig(txPower int8, paDutyCycle, hpMax, paLut uint8, deviceSel sx126x.PaConfigDeviceSel) sx126x.OptionsPa
-	ModulationConfig(spreadingFactor, codingRate uint8, bandwidth physic.Frequency, ldro bool) sx126x.OptionsModulation
+	ModulationConfigLoRa(spreadingFactor, codingRate uint8, bandwidth physic.Frequency, ldro bool) sx126x.OptionsModulation
 	PacketConfig(preambleLength uint16, headerType sx126x.LoRaHeaderType, payloadLength uint8, crc sx126x.LoRaCrcMode, iqMode sx126x.LoRaIQMode) sx126x.OptionsPacket
 	CADConfig(symbol sx126x.CadSymbolNum, detectionPeak, detectionMin uint8, exitMode sx126x.CadExitMode, timeout uint32) sx126x.OptionsCAD
 
@@ -223,7 +223,7 @@ func Setup(modem Transceiver, cfg *sx126x.Config) (*Node, func(), error) {
 	// ---------------------------------
 
 	// = 13.4.5 SetModulationParams ====
-	if err := modem.SetModulationParams(modem.ModulationConfig(cfg.SpreadingFactor, cfg.CodingRate, physic.Frequency(cfg.Bandwidth)*physic.Hertz, cfg.LDRO)); err != nil {
+	if err := modem.SetModulationParams(modem.ModulationConfigLoRa(cfg.SpreadingFactor, cfg.CodingRate, physic.Frequency(cfg.Bandwidth)*physic.Hertz, cfg.LDRO)); err != nil {
 		cleanup()
 		return nil, func() {}, err
 	}

@@ -219,17 +219,19 @@ func (d *Device) PaLut(paLut uint8) OptionsPa {
 }
 
 type ConfigModulation struct {
-	SpreadingFactor uint8
-	Bandwidth       uint8
-	CodingRate      uint8
-	LDRO            uint8
+	Bandwidth          uint8
+	SpreadingFactor    uint8
+	CodingRate         uint8
+	LDRO               uint8
+	Bitrate            uint64
+	PulseShape         uint8
+	FrequencyDeviation uint64
 }
 
 type OptionsModulation func(*ConfigModulation)
 
 func loraCodingRate(codingRate uint8) (uint8, bool) {
 	crToByte := map[uint8]uint8{
-		4: uint8(LoRaCR_4_4),
 		5: uint8(LoRaCR_4_5),
 		6: uint8(LoRaCR_4_6),
 		7: uint8(LoRaCR_4_7),
@@ -258,9 +260,50 @@ func loraBandwidth(bandwidth physic.Frequency) (uint8, bool) {
 	return bw, ok
 }
 
-func (d *Device) ModulationConfig(spreadingFactor, codingRate uint8, bandwidth physic.Frequency, ldro bool) OptionsModulation {
-	// TODO : ADD FSK MODULATION CONFIG
-	log := slog.With("func", "Device.ModulationConfig()", "params", "(uint8, uint8, physic.Frequency, bool)", "return", "(OptionsModulation)", "lib", "sx126x")
+func fskBandwidth(bandwidth physic.Frequency) (uint8, bool) {
+	bwToByte := map[physic.Frequency]uint8{
+		4800 * physic.Hertz:   uint8(FskBW_4800),
+		5800 * physic.Hertz:   uint8(FskBW_5800),
+		7300 * physic.Hertz:   uint8(FskBW_7300),
+		9700 * physic.Hertz:   uint8(FskBW_9700),
+		11700 * physic.Hertz:  uint8(FskBW_11700),
+		14600 * physic.Hertz:  uint8(FskBW_14600),
+		19500 * physic.Hertz:  uint8(FskBW_19500),
+		23400 * physic.Hertz:  uint8(FskBW_23400),
+		29300 * physic.Hertz:  uint8(FskBW_29300),
+		39000 * physic.Hertz:  uint8(FskBW_39000),
+		46900 * physic.Hertz:  uint8(FskBW_46900),
+		58600 * physic.Hertz:  uint8(FskBW_58600),
+		78200 * physic.Hertz:  uint8(FskBW_78200),
+		93800 * physic.Hertz:  uint8(FskBW_93800),
+		117300 * physic.Hertz: uint8(FskBW_117300),
+		156200 * physic.Hertz: uint8(FskBW_156200),
+		187200 * physic.Hertz: uint8(FskBW_187200),
+		234300 * physic.Hertz: uint8(FskBW_234300),
+		312000 * physic.Hertz: uint8(FskBW_312000),
+		373600 * physic.Hertz: uint8(FskBW_373600),
+		467000 * physic.Hertz: uint8(FskBW_467000),
+	}
+
+	bw, ok := bwToByte[bandwidth]
+	return bw, ok
+}
+
+func fskPulseShape(pulseShape float32) (uint8, bool) {
+	floatToPS := map[float32]uint8{
+		0.0: uint8(PulseNoFilter),
+		0.3: uint8(PulseGaussianBt0_3),
+		0.5: uint8(PulseGaussianBt0_5),
+		0.7: uint8(PulseGaussianBt0_7),
+		1.0: uint8(PulseGaussianBt1),
+	}
+
+	ps, ok := floatToPS[pulseShape]
+	return ps, ok
+}
+
+func (d *Device) ModulationConfigLoRa(spreadingFactor, codingRate uint8, bandwidth physic.Frequency, ldro bool) OptionsModulation {
+	log := slog.With("func", "Device.ModulationConfigLoRa()", "params", "(uint8, uint8, physic.Frequency, bool)", "return", "(OptionsModulation)", "lib", "sx126x")
 
 	sf := spreadingFactor
 	if sf < 5 || sf > 12 {
@@ -274,18 +317,6 @@ func (d *Device) ModulationConfig(spreadingFactor, codingRate uint8, bandwidth p
 		ld = uint8(LDRO_ON)
 	}
 
-	cr, ok := loraCodingRate(codingRate)
-	if !ok {
-		cr = uint8(LoRaCR_4_5)
-		log.Warn("Unsupported coding rate", "codingRate", codingRate)
-		log.Warn("Setting Coding Rate to 4/5")
-	}
-	if d.Config.Modem == "lora" && codingRate == 4 {
-		cr = uint8(LoRaCR_4_5)
-		log.Warn("Unsupported coding rate in LoRa mode", "codingRate", codingRate)
-		log.Warn("Setting Coding Rate to 4/5")
-	}
-
 	bw, ok := loraBandwidth(bandwidth)
 	if !ok {
 		bw = uint8(LoRaBW_125)
@@ -293,11 +324,54 @@ func (d *Device) ModulationConfig(spreadingFactor, codingRate uint8, bandwidth p
 		log.Warn("Setting bandwidth to 125 kHz")
 	}
 
+	cr, ok := loraCodingRate(codingRate)
+	if !ok {
+		cr = uint8(LoRaCR_4_5)
+		log.Warn("Unsupported coding rate", "codingRate", codingRate)
+		log.Warn("Setting Coding Rate to 4/5")
+	}
+
 	return func(cfg *ConfigModulation) {
 		cfg.SpreadingFactor = sf
 		cfg.Bandwidth = bw
 		cfg.CodingRate = cr
 		cfg.LDRO = ld
+	}
+}
+
+func (d *Device) ModulationConfigFSK(bitrate, freqDeviation uint64, bandwidth physic.Frequency, pulseShape float32) OptionsModulation {
+	log := slog.With("func", "Device.ModulationConfigFSK()", "params", "(uint64, uint64, physic.Frequency, float32)", "return", "(OptionsModulation)", "lib", "sx126x")
+
+	bw, bwOk := fskBandwidth(bandwidth)
+	if !bwOk {
+		bw = uint8(FskBW_9700)
+		log.Warn("Unsupported bandwidth in FSK mode:", "bw", bandwidth)
+		log.Warn("Setting bandwidth to 9700 Hz:")
+	}
+
+	br := bitrate
+	if br < FskBitrateMin || br > FskBitrateMax {
+		br = 4800
+		log.Warn("Unsupported bitrate:", "bitrate", bitrate)
+		log.Warn("Setting bitrate to 4800 b/s:")
+	}
+	br = (32 * RfFrequencyXtal) / br
+
+	ps, psOk := fskPulseShape(pulseShape)
+	if !psOk {
+		ps = uint8(PulseGaussianBt0_5)
+		log.Warn("Unsupported Pulse Shape:", "pulseShape", pulseShape)
+		log.Warn("Setting Pulse Shape to 0.5:")
+	}
+
+	fd := freqDeviation
+	fd = (fd * 33554432) / RfFrequencyXtal
+
+	return func(cfg *ConfigModulation) {
+		cfg.Bandwidth = bw
+		cfg.Bitrate = br
+		cfg.PulseShape = ps
+		cfg.FrequencyDeviation = fd
 	}
 }
 
@@ -340,11 +414,6 @@ func (d *Device) ModulationCR(codingRate uint8) OptionsModulation {
 		log.Warn("Unsupported coding rate", "codingRate", cr)
 		log.Warn("Setting Coding Rate to 4/5")
 	}
-	if d.Config.Modem == "lora" && cr == 4 {
-		cr = uint8(LoRaCR_4_5)
-		log.Warn("Unsupported coding rate in LoRa mode", "codingRate", cr)
-		log.Warn("Setting Coding Rate to 4/5")
-	}
 
 	return func(cfg *ConfigModulation) {
 		cfg.CodingRate = cr
@@ -359,6 +428,46 @@ func (d *Device) ModulationLDRO(ldro bool) OptionsModulation {
 
 	return func(cfg *ConfigModulation) {
 		cfg.LDRO = ld
+	}
+}
+
+func (d *Device) ModulationBR(bitrate uint64) OptionsModulation {
+	log := slog.With("func", "Device.ModulationBR()", "params", "(uint64)", "return", "(OptionsModulation)", "lib", "sx126x")
+
+	br := bitrate
+	if br < FskBitrateMin || br > FskBitrateMax {
+		br = 4800
+		log.Warn("Unsupported bitrate:", "bitrate", bitrate)
+		log.Warn("Setting bitrate to 4800 b/s:")
+	}
+	br = (32 * RfFrequencyXtal) / br
+
+	return func(cfg *ConfigModulation) {
+		cfg.Bitrate = br
+	}
+}
+
+func (d *Device) ModulationPS(pulseShape float32) OptionsModulation {
+	log := slog.With("func", "Device.ModulationPS()", "params", "(float32)", "return", "(OptionsModulation)", "lib", "sx126x")
+
+	ps, ok := fskPulseShape(pulseShape)
+	if !ok {
+		ps = uint8(PulseGaussianBt0_5)
+		log.Warn("Unsupported Pulse Shape:", "pulseShape", pulseShape)
+		log.Warn("Setting Pulse Shape to 0.5:")
+	}
+
+	return func(cfg *ConfigModulation) {
+		cfg.PulseShape = ps
+	}
+}
+
+func (d *Device) ModulationFD(freqDerivation uint64) OptionsModulation {
+	fd := freqDerivation
+	fd = (fd * 33554432) / RfFrequencyXtal
+
+	return func(cfg *ConfigModulation) {
+		cfg.FrequencyDeviation = fd
 	}
 }
 

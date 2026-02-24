@@ -549,51 +549,101 @@ func (d *Device) SetTxParams(dbm int8, rampTime RampTime) error {
 
 // # 13.4.5 SetModulationParams
 func (d *Device) SetModulationParams(opts ...OptionsModulation) error {
-	// TODO : ADD FSK MODULATION CONFIG
 	log := slog.With("func", "Device.SetModulationParams()", "params", "(...OptionsModulation)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Configure modulation parameters of the radio")
 
-	sf := d.Config.SpreadingFactor
-	if sf < 5 || sf > 12 {
-		sf = 7
-		log.Warn("Unsupported Spreading Factor", "spreadingFactor", d.Config.SpreadingFactor)
-		log.Warn("Setting Spreading Factor to 7")
-	}
+	cfg := ConfigModulation{}
 
-	bw, bwOk := loraBandwidth(physic.Frequency(d.Config.Bandwidth * uint64(physic.Hertz)))
-	if !bwOk {
-		bw = uint8(LoRaBW_125)
-		log.Warn("Unsupported bandwidth", "bw", d.Config.Bandwidth)
-		log.Warn("Setting bandwidth to 125 kHz")
-	}
+	switch d.Config.Modem {
+	case "lora":
+		bw, bwOk := loraBandwidth(physic.Frequency(d.Config.Bandwidth * uint64(physic.Hertz)))
+		if !bwOk {
+			bw = uint8(LoRaBW_125)
+			log.Warn("Unsupported bandwidth in LoRa mode", "bw", d.Config.Bandwidth)
+			log.Warn("Setting bandwidth to 125 kHz")
+		}
 
-	cr, crOk := loraCodingRate(d.Config.CodingRate)
-	if !crOk {
-		cr = uint8(LoRaCR_4_5)
-		log.Warn("Unsupported coding rate", "codingRate", d.Config.CodingRate)
-		log.Warn("Setting Coding Rate to 4/5")
-	}
+		sf := d.Config.SpreadingFactor
+		if sf < 5 || sf > 12 {
+			sf = 7
+			log.Warn("Unsupported Spreading Factor", "spreadingFactor", d.Config.SpreadingFactor)
+			log.Warn("Setting Spreading Factor to 7")
+		}
 
-	ld := uint8(LDRO_OFF)
-	if d.Config.LDRO {
-		ld = uint8(LDRO_ON)
-	}
+		cr, crOk := loraCodingRate(d.Config.CodingRate)
+		if !crOk {
+			cr = uint8(LoRaCR_4_5)
+			log.Warn("Unsupported Coding Rate", "codingRate", d.Config.CodingRate)
+			log.Warn("Setting Coding Rate to 4/5")
 
-	cfg := &ConfigModulation{
-		SpreadingFactor: sf,
-		Bandwidth:       bw,
-		CodingRate:      cr,
-		LDRO:            ld,
+		}
+
+		ld := uint8(LDRO_OFF)
+		if d.Config.LDRO {
+			ld = uint8(LDRO_ON)
+		}
+
+		cfg.SpreadingFactor = sf
+		cfg.Bandwidth = bw
+		cfg.CodingRate = cr
+		cfg.LDRO = ld
+	case "fsk":
+		bw, bwOk := fskBandwidth(physic.Frequency(d.Config.Bandwidth * uint64(physic.Hertz)))
+		if !bwOk {
+			bw = uint8(FskBW_9700)
+			log.Warn("Unsupported bandwidth in FSK mode:", "bw", d.Config.Bandwidth)
+			log.Warn("Setting bandwidth to 9700 Hz:")
+		}
+
+		br := d.Config.FSK.Bitrate
+		if br < FskBitrateMin || br > FskBitrateMax {
+			br = 4800
+			log.Warn("Unsupported bitrate:", "bitrate", d.Config.FSK.Bitrate)
+			log.Warn("Setting bitrate to 4800 b/s:")
+		}
+		br = (32 * RfFrequencyXtal) / br
+
+		ps, psOk := fskPulseShape(d.Config.FSK.PulseShape)
+		if !psOk {
+			ps = uint8(PulseGaussianBt0_5)
+			log.Warn("Unsupported Pulse Shape:", "pulseShape", d.Config.FSK.PulseShape)
+			log.Warn("Setting Pulse Shape to 0.5:")
+		}
+
+		fd := d.Config.FSK.FrequencyDeviation
+		fd = (fd * 33554432) / RfFrequencyXtal
+
+		cfg.Bandwidth = bw
+		cfg.Bitrate = br
+		cfg.PulseShape = ps
+		cfg.FrequencyDeviation = fd
+	default:
+		return fmt.Errorf("Unknown modem type: %v", d.Config.Modem)
 	}
 
 	for _, opt := range opts {
-		opt(cfg)
+		opt(&cfg)
 	}
 
-	commands := []uint8{
-		uint8(CmdSetModulationParams),
-		cfg.SpreadingFactor, cfg.Bandwidth,
-		cfg.CodingRate, cfg.LDRO,
+	var commands []uint8
+	if d.Config.Modem == "lora" {
+		commands = []uint8{
+			uint8(CmdSetModulationParams),
+			cfg.SpreadingFactor, cfg.Bandwidth,
+			cfg.CodingRate, cfg.LDRO,
+		}
+	}
+	if d.Config.Modem == "fsk" {
+		commands = []uint8{
+			uint8(CmdSetModulationParams),
+			uint8(cfg.Bitrate >> 16),
+			uint8(cfg.Bitrate >> 8),
+			uint8(cfg.Bitrate),
+			cfg.PulseShape, cfg.Bandwidth,
+			uint8(cfg.FrequencyDeviation >> 16),
+			uint8(cfg.FrequencyDeviation >> 8),
+			uint8(cfg.FrequencyDeviation),
+		}
 	}
 
 	if err := d.SPI.Tx(commands, nil); err != nil {

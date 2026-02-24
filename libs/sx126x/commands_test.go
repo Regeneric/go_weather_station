@@ -81,7 +81,7 @@ func TestSetSleep(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -121,7 +121,7 @@ func TestSetStandby(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -141,7 +141,7 @@ func TestSetFs(t *testing.T) {
 	}
 
 	if !bytes.Equal(spi.TxData, expectedBytes) {
-		t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", desc, expectedBytes, spi.TxData)
+		t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", desc, expectedBytes, spi.TxData)
 	}
 }
 
@@ -197,7 +197,7 @@ func TestSetTx(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -261,7 +261,7 @@ func TestSetRx(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -301,7 +301,7 @@ func TestStopTimerOnPreamble(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -456,7 +456,7 @@ func TestSetRxDutyCycle(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -506,7 +506,7 @@ func TestSetCAD(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -526,7 +526,7 @@ func TestSetTxContinuousWave(t *testing.T) {
 	}
 
 	if !bytes.Equal(spi.TxData, expectedBytes) {
-		t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", desc, expectedBytes, spi.TxData)
+		t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", desc, expectedBytes, spi.TxData)
 	}
 }
 
@@ -544,7 +544,7 @@ func TestSetTxInfinitePreamble(t *testing.T) {
 	}
 
 	if !bytes.Equal(spi.TxData, expectedBytes) {
-		t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", desc, expectedBytes, spi.TxData)
+		t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", desc, expectedBytes, spi.TxData)
 	}
 }
 
@@ -582,7 +582,7 @@ func TestSetRegulatorMode(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -664,7 +664,7 @@ func TestCalibrate(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -728,7 +728,7 @@ func TestCalibrateImage(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -1087,7 +1087,7 @@ func TestSetPaConfig(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -1133,7 +1133,7 @@ func TestSetRxTxFallbackMode(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -1513,7 +1513,7 @@ func TestSetDioIrqParams(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -1812,7 +1812,7 @@ func TestGetIrqStatus(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.tx) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.tx, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.tx, spi.TxData)
 			}
 
 			if tc.modem == "lora" {
@@ -2092,7 +2092,7 @@ func TestClearIrqStatus(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -2132,7 +2132,7 @@ func TestDIO2AsRfSwitchCtrl(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
@@ -2252,7 +2252,1049 @@ func TestSetDIO3AsTCXOCtrl(t *testing.T) {
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent: [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			}
+		})
+	}
+}
+
+// # 13.4.1 SetRfFrequency
+func TestSetRfFrequency(t *testing.T) {
+	tests := []struct {
+		name          string
+		desc          string
+		freq          physic.Frequency
+		expectedBytes []uint8
+	}{
+		{
+			name:          "RfZero",
+			desc:          "Verifies that providing a zero frequency correctly evaluates through the conversion formula and results in a completely zeroed Phase-Locked Loop step payload.",
+			freq:          0x00000000 * physic.Hertz,
+			expectedBytes: []uint8{0x86, 0x00, 0x00, 0x00, 0x00},
+		},
+		{
+			name:          "RfMax32bit",
+			desc:          "Verifies the driver's mathematical stability when provided with the absolute maximum thirty-two-bit frequency value, ensuring that internal sixty-four-bit calculations do not panic and the final result is correctly truncated and packed into the four-byte SPI payload.",
+			freq:          0xFFFFFFFF * physic.Hertz,
+			expectedBytes: []uint8{0x86, 0x0C, 0x6F, 0x7A, 0x0A},
+		},
+		{
+			name:          "RfMinNonzero",
+			desc:          "Verifies that the absolute minimum non-zero frequency is correctly processed by the conversion formula without rounding down to zero, ensuring the lowest possible fractional step is evaluated.",
+			freq:          0x00000001 * physic.Hertz,
+			expectedBytes: []uint8{0x86, 0x00, 0x00, 0x00, 0x01},
+		},
+		{
+			name:          "RfMSBOnly",
+			desc:          "Verifies the mathematical conversion and byte packing when provided with a frequency value containing only the most significant bit, ensuring numeric boundary safety during multiplication and division.",
+			freq:          0x80000000 * physic.Hertz,
+			expectedBytes: []uint8{0x86, 0x86, 0x37, 0xBD, 0x05},
+		},
+		{
+			name:          "RfShift",
+			desc:          "Verifies that an arbitrary, multi-byte alternating bit pattern is correctly processed by the frequency conversion formula and accurately dispersed across the entire four-byte SPI payload.",
+			freq:          0x12345678 * physic.Hertz,
+			expectedBytes: []uint8{0x86, 0x13, 0x16, 0xB7, 0xE4},
+		},
+		{
+			name:          "Rf433M",
+			desc:          "Verifies that the driver correctly calculates and formats the SPI payload for the standard low-band Industrial, Scientific, and Medical radio frequency.",
+			freq:          433 * physic.MegaHertz,
+			expectedBytes: []uint8{0x86, 0x1B, 0x10, 0x00, 0x00},
+		},
+		{
+			name:          "Rf868M",
+			desc:          "Verifies that the driver correctly calculates and formats the SPI payload for the standard European high-band Industrial, Scientific, and Medical radio frequency.",
+			freq:          868 * physic.MegaHertz,
+			expectedBytes: []uint8{0x86, 0x36, 0x40, 0x00, 0x00},
+		},
+		{
+			name:          "Rf915M",
+			desc:          "Verifies that the driver correctly calculates and formats the SPI payload for the standard North American high-band Industrial, Scientific, and Medical radio frequency.",
+			freq:          915 * physic.MegaHertz,
+			expectedBytes: []uint8{0x86, 0x39, 0x30, 0x00, 0x00},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			spi := MockSPI{}
+			dev := Device{SPI: &spi}
+
+			err := dev.SetRfFrequency(tc.freq)
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nSetRfFrequency returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			}
+		})
+	}
+}
+
+// # 13.4.2 SetPacketType
+func TestSetPacketType(t *testing.T) {
+	tests := []struct {
+		name          string
+		desc          string
+		packet        PacketType
+		expectedBytes []uint8
+	}{
+		{
+			name:          "GFSK",
+			desc:          "Verifies that the driver correctly formats the SPI command to configure the radio transceiver for Gaussian Frequency Shift Keying modulation.",
+			packet:        PacketTypeGFSK,
+			expectedBytes: []uint8{0x8A, 0x00},
+		},
+		{
+			name:          "LoRa",
+			desc:          "Verifies that the driver correctly formats the SPI command to configure the radio transceiver for Long Range modulation.",
+			packet:        PacketTypeLoRa,
+			expectedBytes: []uint8{0x8A, 0x01},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			spi := MockSPI{}
+			dev := Device{SPI: &spi}
+
+			err := dev.SetPacketType(tc.packet)
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nSetPacketType returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			}
+		})
+	}
+}
+
+// # 13.4.3 GetPacketType
+func TestGetPacketType(t *testing.T) {
+	tests := []struct {
+		name     string
+		desc     string
+		commands []uint8
+		tx       []uint8
+		rx       []uint8
+	}{
+		{
+			name:     "GFSK",
+			desc:     "",
+			commands: []uint8{0x11, OpCodeNop, OpCodeNop},
+			tx:       []uint8{0x11, 0x00, 0x00},
+			rx:       []uint8{0x00, 0x01, 0x00},
+		},
+		{
+			name:     "Lora",
+			desc:     "",
+			commands: []uint8{0x11, OpCodeNop, OpCodeNop},
+			tx:       []uint8{0x11, 0x00, 0x00},
+			rx:       []uint8{0x00, 0x01, 0x01},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			spi := MockSPI{}
+			spi.RxData = tc.rx
+			dev := Device{SPI: &spi}
+
+			status, err := dev.GetPacketType()
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nGetPacketType returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(spi.TxData, tc.tx) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.tx, spi.TxData)
+			}
+
+			if !bytes.Equal(spi.RxData, tc.rx) {
+				t.Errorf("FAIL: %s\nWrong bytes read from SPI!\nExpected: [%# x]\nGot: [%# x]", tc.desc, tc.rx, spi.RxData)
+			}
+
+			switch status {
+			case uint8(PacketTypeGFSK):
+				return
+			case uint8(PacketTypeLoRa):
+				return
+			default:
+				t.Errorf("FAIL: %s\nWrong status returned from the SX126x modem!\nExpected: [% x] or [% x]\nGot: [% x]", tc.desc, PacketTypeGFSK, PacketTypeLoRa, status)
+			}
+		})
+	}
+}
+
+// # 13.4.4 SetTxParams
+func TestSetTxParams(t *testing.T) {
+	tests := []struct {
+		name          string
+		desc          string
+		dbm           int8
+		ramp          RampTime
+		expectedBytes []uint8
+	}{
+		{
+			name:          "Ramp10usZeroDbm",
+			desc:          "Verifies that the driver correctly formats the SPI command to set zero decibel-milliwatt output power with a ten-microsecond power amplifier ramp time.",
+			dbm:           0,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0x00, 0x00},
+		},
+		{
+			name:          "Ramp20usZeroDbm",
+			desc:          "Verifies that the driver correctly formats the SPI command to set zero decibel-milliwatt output power with a twenty-microsecond power amplifier ramp time.",
+			dbm:           0,
+			ramp:          PaRamp20u,
+			expectedBytes: []uint8{0x8E, 0x00, 0x01},
+		},
+		{
+			name:          "Ramp40usZeroDbm",
+			desc:          "Verifies that the driver correctly formats the SPI command to set zero decibel-milliwatt output power with a forty-microsecond power amplifier ramp time.",
+			dbm:           0,
+			ramp:          PaRamp40u,
+			expectedBytes: []uint8{0x8E, 0x00, 0x02},
+		},
+		{
+			name:          "Ramp80usZeroDbm",
+			desc:          "Verifies that the driver correctly formats the SPI command to set zero decibel-milliwatt output power with an eighty-microsecond power amplifier ramp time.",
+			dbm:           0,
+			ramp:          PaRamp80u,
+			expectedBytes: []uint8{0x8E, 0x00, 0x03},
+		},
+		{
+			name:          "Ramp200usZeroDbm",
+			desc:          "Verifies that the driver correctly formats the SPI command to set zero decibel-milliwatt output power with a two-hundred-microsecond power amplifier ramp time.",
+			dbm:           0,
+			ramp:          PaRamp200u,
+			expectedBytes: []uint8{0x8E, 0x00, 0x04},
+		},
+		{
+			name:          "Ramp800usZeroDbm",
+			desc:          "Verifies that the driver correctly formats the SPI command to set zero decibel-milliwatt output power with an eight-hundred-microsecond power amplifier ramp time.",
+			dbm:           0,
+			ramp:          PaRamp800u,
+			expectedBytes: []uint8{0x8E, 0x00, 0x05},
+		},
+		{
+			name:          "Ramp1700usZeroDbm",
+			desc:          "Verifies that the driver correctly formats the SPI command to set zero decibel-milliwatt output power with a one-thousand-seven-hundred-microsecond power amplifier ramp time.",
+			dbm:           0,
+			ramp:          PaRamp1700u,
+			expectedBytes: []uint8{0x8E, 0x00, 0x06},
+		},
+		{
+			name:          "Ramp3400usZeroDbm",
+			desc:          "Verifies that the driver correctly formats the SPI command to set zero decibel-milliwatt output power with a three-thousand-four-hundred-microsecond power amplifier ramp time.",
+			dbm:           0,
+			ramp:          PaRamp3400u,
+			expectedBytes: []uint8{0x8E, 0x00, 0x07},
+		},
+		{
+			name:          "TxPowerMax8bit",
+			desc:          "Verifies that the driver correctly processes the maximum possible positive signed integer value for transmission power without payload corruption.",
+			dbm:           0x7F,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0x7F, 0x00},
+		},
+		{
+			name:          "TxPowerShift",
+			desc:          "Verifies that an arbitrary positive power value is correctly positioned in the payload alongside a standard ramp time configuration.",
+			dbm:           0x12,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0x12, 0x00},
+		},
+		{
+			name:          "TxPowerPlus1",
+			desc:          "Verifies that the driver correctly processes a minimal positive one decibel-milliwatt output power setting.",
+			dbm:           1,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0x01, 0x00},
+		},
+		{
+			name:          "TxPowerPlus14",
+			desc:          "Verifies that the driver correctly formats the SPI command for a standard fourteen decibel-milliwatt high-power transmission setting typically used in standard configurations.",
+			dbm:           14,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0x0E, 0x00},
+		},
+		{
+			name:          "TxPowerPlus22",
+			desc:          "Verifies that the driver correctly formats the SPI command for the absolute maximum twenty-two decibel-milliwatt transmission power supported by the hardware.",
+			dbm:           22,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0x16, 0x00},
+		},
+		{
+			name:          "TxPowerNeg1",
+			desc:          "Verifies that the driver correctly processes a negative one decibel-milliwatt power setting, ensuring proper two's complement byte encoding.",
+			dbm:           -1,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0xFF, 0x00},
+		},
+		{
+			name:          "TxPowerNeg9",
+			desc:          "Verifies that the driver correctly handles a typical negative transmission power value through proper signed two's complement conversion.",
+			dbm:           -9,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0xF7, 0x00},
+		},
+		{
+			name:          "TxPowerNeg17",
+			desc:          "Verifies that the driver accurately encodes the absolute lowest configurable negative transmission power limit using two's complement representation.",
+			dbm:           -17,
+			ramp:          PaRamp10u,
+			expectedBytes: []uint8{0x8E, 0xEF, 0x00},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			spi := MockSPI{}
+			dev := Device{SPI: &spi}
+
+			err := dev.SetTxParams(tc.dbm, tc.ramp)
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nSetTxParams returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			}
+		})
+	}
+}
+
+// # 13.4.5 SetModulationParams
+func TestSetModulationParams(t *testing.T) {
+	type lora struct {
+		sf   uint8
+		cr   uint8
+		ldro bool
+	}
+
+	type fsk struct {
+		br uint64
+		ps float32
+		fd uint64
+	}
+
+	tests := []struct {
+		name          string
+		desc          string
+		modem         string
+		bw            uint64
+		loraCfg       *lora
+		fskCfg        *fsk
+		options       func(d *Device) []OptionsModulation
+		expectedBytes []uint8
+		expectError   bool
+	}{
+		// LoRa
+		{
+			name:  "SF7_BW125_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly formats the SPI command with standard default LoRa parameters, including a typical spreading factor, bandwidth, and error coding rate, without low data rate optimization.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR5_LDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly formats the SPI command with standard default LoRa parameters while explicitly enabling low data rate optimization.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   5,
+				ldro: true,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
+			expectError:   false,
+		},
+		{
+			name:  "SF5_BW125_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly processes the minimum allowable spreading factor alongside standard bandwidth and coding rate settings.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   5,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x05, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF12_BW125_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly processes the maximum allowable spreading factor alongside standard bandwidth and coding rate settings.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   12,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x0C, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF0_BW125_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies the driver's fallback logic by ensuring a below-minimum spreading factor value is safely clamped or defaulted to a standard value.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   0,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF15_BW125_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies the driver's fallback logic by ensuring an above-maximum spreading factor value is safely clamped or defaulted to a standard value.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   15,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW0_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies the driver's fallback logic by ensuring a zero bandwidth value is safely clamped or defaulted to a standard intermediate bandwidth.",
+			modem: "lora",
+			bw:    0,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW900_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies the driver's fallback logic by ensuring an excessively high bandwidth value is safely clamped or defaulted to a standard intermediate bandwidth.",
+			modem: "lora",
+			bw:    900000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW7.8_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly processes the minimum valid bandwidth configuration alongside standard spreading factor and coding rate settings.",
+			modem: "lora",
+			bw:    7800,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x00, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW500_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly processes the maximum valid bandwidth configuration alongside standard spreading factor and coding rate settings.",
+			modem: "lora",
+			bw:    500000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x06, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR0_NoLDRO_LoRa_Default",
+			desc:  "Verifies the driver's fallback logic by ensuring a below-minimum coding rate value is safely clamped or defaulted to a standard rate.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   0,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR8_NoLDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly processes the maximum valid coding rate configuration alongside standard spreading factor and bandwidth settings.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   8,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x04, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR4_NoLDRO_LoRa_Default",
+			desc:  "Verifies the driver's fallback logic by ensuring a border-case, below-minimum coding rate value is safely clamped or defaulted to a standard rate.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   4,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF5_BW500_CR5_NoLDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly formats the SPI command for a high-speed transmission profile using the minimum spreading factor and maximum bandwidth.",
+			modem: "lora",
+			bw:    500000,
+			loraCfg: &lora{
+				sf:   5,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x05, 0x06, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF12_BW7.8_CR8_LDRO_LoRa_Default",
+			desc:  "Verifies that the driver correctly formats the SPI command for an extreme long-range, low-speed transmission profile, combining maximum spreading factor, minimum bandwidth, maximum coding rate, and enabled low data rate optimization.",
+			modem: "lora",
+			bw:    7800,
+			loraCfg: &lora{
+				sf:   12,
+				cr:   8,
+				ldro: true,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x0C, 0x00, 0x04, 0x01},
+			expectError:   false,
+		},
+		{
+			name:  "SF0_BW0_CR0_NoLDRO_LoRa_Default",
+			desc:  "Verifies the driver's comprehensive fallback logic when provided with completely zeroed, invalid parameters, ensuring all values are safely restored to workable defaults.",
+			modem: "lora",
+			bw:    0,
+			loraCfg: &lora{
+				sf:   0,
+				cr:   0,
+				ldro: false,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF99_BW999_CR99_LDRO_LoRa_Default",
+			desc:  "Verifies the driver's comprehensive fallback logic when provided with absurdly high, invalid parameters, ensuring all values are safely restored to workable defaults while maintaining requested boolean flags.",
+			modem: "lora",
+			bw:    999000,
+			loraCfg: &lora{
+				sf:   99,
+				cr:   99,
+				ldro: true,
+			},
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR5_LDRO_LoRa_ModulationConfigLoRa",
+			desc:  "Verifies that the multi-parameter configuration option correctly overrides all base LoRa modulation settings and formats the SPI payload accordingly.",
+			modem: "lora",
+			bw:    0,
+			loraCfg: &lora{
+				sf:   0,
+				cr:   0,
+				ldro: false,
+			},
+			fskCfg: nil,
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationConfigLoRa(7, 5, 125000*physic.Hertz, true)}
+			},
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR5_NoLDRO_LoRa_ModulationBW",
+			desc:  "Verifies that the individual bandwidth configuration option correctly updates the base parameter and packs the proper filter index into the payload.",
+			modem: "lora",
+			bw:    0,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg: nil,
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationBW(125000 * physic.Hertz)}
+			},
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR5_NoLDRO_LoRa_ModulationCR",
+			desc:  "Verifies that the individual coding rate configuration option correctly overrides the base setting without affecting the other parameters.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   0,
+				ldro: false,
+			},
+			fskCfg: nil,
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationCR(5)}
+			},
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR5_NoLDRO_LoRa_ModulationSF",
+			desc:  "Verifies that the individual spreading factor configuration option correctly overrides the base setting without affecting the other parameters.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   0,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg: nil,
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationSF(7)}
+			},
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR5_LDRO_LoRa_ModulationLDRO",
+			desc:  "Verifies that the individual low data rate optimization configuration option correctly toggles the corresponding flag in the SPI payload.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   7,
+				cr:   5,
+				ldro: false,
+			},
+			fskCfg: nil,
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationLDRO(true)}
+			},
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
+			expectError:   false,
+		},
+		{
+			name:  "SF7_BW125_CR5_NoLDRO_LoRa_ModulationSF_ModulationCR",
+			desc:  "Verifies that multiple individual functional options can be chained together to sequentially override specific base LoRa parameters before payload construction.",
+			modem: "lora",
+			bw:    125000,
+			loraCfg: &lora{
+				sf:   0,
+				cr:   0,
+				ldro: false,
+			},
+			fskCfg: nil,
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationSF(7), d.ModulationCR(5)}
+			},
+			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError:   false,
+		},
+
+		// FSK
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_Default",
+			desc:    "Verifies that the driver correctly formats the SPI command for a standard frequency shift keying profile using typical bit rate, frequency deviation, Gaussian pulse shape, and bandwidth parameters.",
+			modem:   "fsk",
+			bw:      9700, // ~2*(fdev+(br/2))
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 4800,
+				ps: 0.5,
+				fd: 2400,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BR0.6_PS0.5_BW9.7_FD2.4_FSK_Default",
+			desc:    "Verifies that the driver correctly processes the absolute minimum allowed bit rate configuration without payload corruption or mathematical error.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 600,
+				ps: 0.5,
+				fd: 2400,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x1A, 0x0A, 0xAA, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BR300.0_PS0.5_BW9.7_FD2.4_FSK_Default",
+			desc:    "Verifies that the driver correctly processes the absolute maximum standard bit rate configuration for frequency shift keying modulation.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 300000,
+				ps: 0.5,
+				fd: 2400,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x00, 0x0D, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BRMax24bit_PS0.5_BW9.7_FD2.4_FSK_Default",
+			desc:    "Verifies the mathematical stability and bitwise packing logic when the bit rate calculation formula processes the maximum possible twenty-four-bit unsigned integer value.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 0xFFFFFF,
+				ps: 0.5,
+				fd: 2400,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BROverflow_PS0.5_BW9.7_FD2.4_FSK_Default",
+			desc:    "Verifies the mathematical stability and bitwise packing logic when the bit rate calculation formula processes a value exceeding the twenty-four-bit limit, checking for proper upper-byte truncation.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 0xFF000000,
+				ps: 0.5,
+				fd: 2400,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BRMinNonZero_PS0.5_BW9.7_FD2.4_FSK_Default",
+			desc:    "Verifies that the bit rate calculation correctly processes the smallest non-zero unsigned integer input without causing boundary or shifting errors.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 0x000001,
+				ps: 0.5,
+				fd: 2400,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BRMsbOnly_PS0.5_BW9.7_FD2.4_FSK_Default",
+			desc:    "Verifies the bit rate calculation when provided with an input where only the most significant bit of the twenty-four-bit field is active.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 0x800000,
+				ps: 0.5,
+				fd: 2400,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FD0_FSK_Default",
+			desc:    "Verifies that the driver correctly formats the payload when the frequency deviation parameter is entirely zeroed, ensuring proper packing of an unmodulated carrier state.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 4800,
+				ps: 0.5,
+				fd: 0,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x00, 0x00},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FDMax24bit_FSK_Default",
+			desc:    "Verifies the driver's handling of the theoretical maximum twenty-four-bit unsigned integer value for frequency deviation without logic panics.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 4800,
+				ps: 0.5,
+				fd: 0xFFFFFF,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x0C, 0x6F, 0x78},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FDMinNonZero_FSK_Default",
+			desc:    "Verifies the frequency deviation mathematical conversion correctly packs the lowest possible discrete fractional step into the payload.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 4800,
+				ps: 0.5,
+				fd: 0x000001,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x00, 0x01},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FDMsbOnly_FSK_Default",
+			desc:    "Verifies the frequency deviation conversion logic using a boundary input containing only the highest active bit within the designated bit range.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 4800,
+				ps: 0.5,
+				fd: 0x800000,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x86, 0x37, 0xBD},
+			expectError:   false,
+		},
+		{
+			name:    "BR0.6_PS0_BW4.8_FD0_FSK_Default",
+			desc:    "Verifies the payload construction for a raw frequency shift keying configuration utilizing minimum bit rate and bandwidth settings with the pulse shaping filter fully disabled.",
+			modem:   "fsk",
+			bw:      4800,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 600,
+				ps: 0.0,
+				fd: 0,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x1A, 0x0A, 0xAA, 0x00, 0x1F, 0x00, 0x00, 0x00},
+			expectError:   false,
+		},
+		{
+			name:    "BR300k_PS1_BW467_FD83_FSK_Default",
+			desc:    "Verifies that the driver correctly formats the SPI command for a high-speed GFSK profile using a wide receiver bandwidth, maximum standard bit rate, broad frequency deviation, and a less restrictive Gaussian pulse shape.",
+			modem:   "fsk",
+			bw:      467000,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 300000,
+				ps: 1.0,
+				fd: 83500,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x8B, 0x00, 0x0D, 0x55, 0x0B, 0x09, 0x01, 0x56, 0x04},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationConfigFSK",
+			desc:    "Verifies that the multi-parameter configuration option correctly overrides all base FSK modulation settings, performs necessary mathematical conversions, and formats the SPI payload accordingly.",
+			modem:   "fsk",
+			bw:      0,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 0,
+				ps: 0.0,
+				fd: 0,
+			},
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationConfigFSK(4800, 2400, 9700*physic.Hertz, 0.5)}
+			},
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationBR",
+			desc:    "Verifies that the individual bit rate configuration option correctly overrides the base setting and computes the correct PLL step values without affecting the other parameters.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 0,
+				ps: 0.5,
+				fd: 2400,
+			},
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationBR(4800)}
+			},
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationPS",
+			desc:    "Verifies that the individual pulse shape configuration option correctly updates the base parameter and packs the proper Gaussian filter index into the payload.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 4800,
+				ps: 0.0,
+				fd: 2400,
+			},
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationPS(0.5)}
+			},
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationFD",
+			desc:    "Verifies that the individual frequency deviation configuration option correctly overrides the base setting and accurately calculates the required fractional register values.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 4800,
+				ps: 0.5,
+				fd: 0,
+			},
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationFD(2400)}
+			},
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+		{
+			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationBR_ModulationPS",
+			desc:    "Verifies that the individual frequency deviation configuration option correctly overrides the base setting and accurately calculates the required fractional register values.",
+			modem:   "fsk",
+			bw:      9700,
+			loraCfg: nil,
+			fskCfg: &fsk{
+				br: 0,
+				ps: 0,
+				fd: 2400,
+			},
+			options: func(d *Device) []OptionsModulation {
+				return []OptionsModulation{d.ModulationBR(4800), d.ModulationPS(0.5)}
+			},
+			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError:   false,
+		},
+
+		// Misc
+		{
+			name:          "UnknownModem",
+			desc:          "Verifies that the driver safely aborts and returns an error when attempting to set modulation parameters for an unsupported or uninitialized modem type.",
+			modem:         "generic",
+			bw:            0,
+			loraCfg:       nil,
+			fskCfg:        nil,
+			options:       nil,
+			expectedBytes: nil,
+			expectError:   true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			spi := MockSPI{}
+			cfg := Config{
+				Modem:     tc.modem,
+				Bandwidth: tc.bw,
+			}
+
+			if tc.loraCfg != nil {
+				cfg.SpreadingFactor = tc.loraCfg.sf
+				cfg.CodingRate = tc.loraCfg.cr
+				cfg.LDRO = tc.loraCfg.ldro
+			}
+
+			if tc.fskCfg != nil {
+				cfg.FSK = &FSK{
+					Bitrate:            tc.fskCfg.br,
+					PulseShape:         tc.fskCfg.ps,
+					FrequencyDeviation: tc.fskCfg.fd,
+				}
+			}
+
+			dev := Device{SPI: &spi, Config: &cfg}
+
+			var opts []OptionsModulation
+			if tc.options != nil {
+				opts = tc.options(&dev)
+			}
+			err := dev.SetModulationParams(opts...)
+
+			if tc.expectError == true {
+				if err == nil {
+					t.Errorf("FAIL: %s\nExpected an error for modem %q, but got nil", tc.desc, tc.modem)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nSetModulationParams returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
 			}
 		})
 	}
