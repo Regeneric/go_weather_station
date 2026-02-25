@@ -99,6 +99,10 @@ lora:
   rx_buffer_address: 128            # Start address of RX buffer (0-255)                                            ; default: 128
   tx_buffer_address: 0              # Start address of TX buffer (0-255)                                            ; default: 0
   tx_timeout: 0                     # Timeout * 15.625 us (0 to disable)                                            ; default: 0
+  fsk:                              # Optional, only for FSK mode
+    bitrate: ""                     # 600 - 300000 bytes per second                                                 ; default: none
+    pulse_shape: ""                 # 0.0 ; 0.3 ; 0.5 ; 0.7 ; 1.0                                                   ; default: none
+    frequency_deviation: ""         # ~m == 1                                                                       ; default: none
   pins:
     reset: "GPIO18"                 #                                                                               ; default: GPIO18
     busy: "GPIO20"                  #                                                                               ; default: GPIO20

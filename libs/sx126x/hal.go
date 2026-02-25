@@ -472,11 +472,17 @@ func (d *Device) ModulationFD(freqDerivation uint64) OptionsModulation {
 }
 
 type ConfigPacket struct {
-	PreambleLength uint16
-	HeaderType     uint8
-	PayloadLength  uint8
-	CRC            uint8
-	IQMode         uint8
+	PreambleLength          uint16
+	HeaderType              uint8
+	PayloadLength           uint8
+	CRC                     uint8
+	IQMode                  uint8
+	PreambleDetectionLength uint8
+	SyncWordDetectionLength uint8
+	AddresComparison        uint8
+	PacketType              uint8
+	CRC_FSK                 uint8
+	Whitening               uint8
 }
 
 type OptionsPacket func(*ConfigPacket)
@@ -510,9 +516,15 @@ func (d *Device) PacketPayLen(payloadLength uint8) OptionsPacket {
 	}
 }
 
-func (d *Device) PacketCRC(crc LoRaCrcMode) OptionsPacket {
+func (d *Device) PacketLoRaCRC(crc LoRaCrcMode) OptionsPacket {
 	return func(cfg *ConfigPacket) {
 		cfg.CRC = uint8(crc)
+	}
+}
+
+func (d *Device) PacketFskCRC(crc FskCrcType) OptionsPacket {
+	return func(cfg *ConfigPacket) {
+		cfg.CRC_FSK = uint8(crc)
 	}
 }
 
@@ -520,6 +532,68 @@ func (d *Device) PacketIQ(iqMode LoRaIQMode) OptionsPacket {
 	return func(cfg *ConfigPacket) {
 		cfg.IQMode = uint8(iqMode)
 	}
+}
+
+func fskPreambleDetectionLength(length uint8) (FskPreambleDetector, bool) {
+	byteToDet := map[uint8]FskPreambleDetector{
+		0:  PreambleDetLenOff,
+		8:  PreambleDetLen8,
+		16: PreambleDetLen16,
+		32: PreambleDetLen32,
+	}
+
+	pd, ok := byteToDet[length]
+	return pd, ok
+}
+func fskSyncWordDetectionLength(length uint8) (FskSyncWord, bool) {
+	byteToSync := map[uint8]FskSyncWord{
+		0: FskSyncWordLength0,
+		1: FskSyncWordLength1,
+		2: FskSyncWordLength2,
+		3: FskSyncWordLength3,
+		4: FskSyncWordLength4,
+		5: FskSyncWordLength5,
+		6: FskSyncWordLength6,
+		7: FskSyncWordLength7,
+		8: FskSyncWordLength8,
+	}
+
+	sd, ok := byteToSync[length]
+	return sd, ok
+}
+
+func fskAddressComparison(mode uint8) (FskAddressComp, bool) {
+	byteToComp := map[uint8]FskAddressComp{
+		0: AddrCompOff,
+		1: AddrCompNode,
+		2: AddrCompAll,
+	}
+
+	ac, ok := byteToComp[mode]
+	return ac, ok
+}
+
+func fskPacketType(packet string) (PacketType, bool) {
+	stringToPacket := map[string]PacketType{
+		"static":   PacketTypeGFSKStatic,
+		"variable": PacketTypeGFSKVariable,
+	}
+
+	pt, ok := stringToPacket[packet]
+	return pt, ok
+}
+
+func fskCRC(mode string) (FskCrcType, bool) {
+	stringToCrc := map[string]FskCrcType{
+		"0":     CRC0,
+		"1":     CRC1,
+		"2":     CRC2,
+		"1_inv": CRC1Inv,
+		"2_inv": CRC2Inv,
+	}
+
+	crc, ok := stringToCrc[mode]
+	return crc, ok
 }
 
 type ConfigCAD struct {

@@ -656,43 +656,113 @@ func (d *Device) SetModulationParams(opts ...OptionsModulation) error {
 
 // # 13.4.6 SetPacketParams
 func (d *Device) SetPacketParams(opts ...OptionsPacket) error {
-	// TODO : ADD FSK MODULATION CONFIG
 	log := slog.With("func", "Device.SetPacketParams()", "params", "(...OptionsParams)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Set parameters of the packet handling block")
 
-	headerType := uint8(HeaderExplicit)
-	if d.Config.HeaderImplicit {
-		headerType = uint8(HeaderImplicit)
-	}
+	cfg := ConfigPacket{}
 
-	crc := uint8(CrcOff)
-	if d.Config.CRC {
-		crc = uint8(CrcOn)
-	}
+	switch d.Config.Modem {
+	case "lora":
+		headerType := uint8(HeaderExplicit)
+		if d.Config.HeaderImplicit {
+			headerType = uint8(HeaderImplicit)
+		}
 
-	iq := uint8(IqStandard)
-	if d.Config.InvertedIQ {
-		iq = uint8(IqInverted)
-	}
+		crc := uint8(CrcOff)
+		if d.Config.CRC {
+			crc = uint8(CrcOn)
+		}
 
-	cfg := &ConfigPacket{
-		PreambleLength: d.Config.PreambleLength,
-		HeaderType:     headerType,
-		PayloadLength:  d.Config.PayloadLength,
-		CRC:            crc,
-		IQMode:         iq,
+		iq := uint8(IqStandard)
+		if d.Config.InvertedIQ {
+			iq = uint8(IqInverted)
+		}
+
+		cfg.PreambleLength = d.Config.PreambleLength
+		cfg.HeaderType = headerType
+		cfg.PayloadLength = d.Config.PayloadLength
+		cfg.CRC = crc
+		cfg.IQMode = iq
+	case "fsk":
+		pd, pdOk := fskPreambleDetectionLength(d.Config.FSK.PreambleDetectionLength)
+		if !pdOk {
+			pd = PreambleDetLen16
+			log.Warn("Unsupported Premable Detection Length:", "premableDetectionLength", d.Config.FSK.PreambleDetectionLength)
+			log.Warn("Setting Premable Detection Length to 16:")
+		}
+
+		sd, sdOk := fskSyncWordDetectionLength(d.Config.FSK.SyncWordDetectionLength)
+		if !sdOk {
+			sd = FskSyncWordLength2
+			log.Warn("Unsupported Sync Word Detection Length:", "syncWordDetectionLength", d.Config.FSK.SyncWordDetectionLength)
+			log.Warn("Setting Sync Word Detection Length to 2 bytes:")
+		}
+
+		ac, acOk := fskAddressComparison(d.Config.FSK.AddressComparison)
+		if !acOk {
+			ac = AddrCompOff
+			log.Warn("Unsupported Address Comparison:", "addressComparison", d.Config.FSK.AddressComparison)
+			log.Warn("Setting Address Comparison to Off:")
+		}
+
+		pt, ptOk := fskPacketType(d.Config.FSK.PacketType)
+		if !ptOk {
+			pt = PacketTypeGFSKVariable
+			log.Warn("Unsupported Packet Type:", "packetType", d.Config.FSK.PacketType)
+			log.Warn("Setting Packet Type to VARIABLE:")
+		}
+
+		crc, crcOk := fskCRC(d.Config.FSK.CRC)
+		if !crcOk {
+			crc = CRC2
+			log.Warn("Unsupported CRC:", "crc", d.Config.FSK.CRC)
+			log.Warn("Setting CRC to CRC2:")
+		}
+
+		wt := WhiteningOff
+		if (d.Config.FSK.Whitening) == true {
+			wt = WhiteningOn
+		}
+
+		cfg.PreambleLength = d.Config.PreambleLength
+		cfg.PreambleDetectionLength = uint8(pd)
+		cfg.SyncWordDetectionLength = uint8(sd)
+		cfg.AddresComparison = uint8(ac)
+		cfg.PacketType = uint8(pt)
+		cfg.PayloadLength = d.Config.PayloadLength
+		cfg.CRC_FSK = uint8(crc)
+		cfg.Whitening = uint8(wt)
+	default:
+		return fmt.Errorf("Unknown modem type: %v", d.Config.Modem)
 	}
 
 	for _, opt := range opts {
-		opt(cfg)
+		opt(&cfg)
 	}
 
-	commands := []uint8{
-		uint8(CmdSetPacketParams),
-		uint8(cfg.PreambleLength >> 8),
-		uint8(cfg.PreambleLength),
-		cfg.HeaderType, cfg.PayloadLength,
-		cfg.CRC, cfg.IQMode,
+	var commands []uint8
+	if d.Config.Modem == "lora" {
+		commands = []uint8{
+			uint8(CmdSetPacketParams),
+			uint8(cfg.PreambleLength >> 8),
+			uint8(cfg.PreambleLength),
+			cfg.HeaderType, cfg.PayloadLength,
+			cfg.CRC, cfg.IQMode,
+		}
+	}
+	if d.Config.Modem == "fsk" {
+		commands = []uint8{
+			uint8(CmdSetPacketParams),
+			uint8(cfg.PreambleLength >> 8),
+			uint8(cfg.PreambleLength),
+			cfg.PreambleDetectionLength,
+			cfg.SyncWordDetectionLength,
+			cfg.AddresComparison,
+			cfg.PacketType,
+			cfg.PayloadLength,
+			cfg.CRC_FSK,
+			cfg.Whitening,
+		}
 	}
 
 	if err := d.SPI.Tx(commands, nil); err != nil {

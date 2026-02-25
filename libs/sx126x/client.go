@@ -100,7 +100,7 @@ func (d *Device) Close(sleepMode SleepConfig) error {
 	log := slog.With("func", "Device.Close()", "params", "(-)", "return", "(error)", "lib", "sx1262")
 	log.Info("Closing SX126x module", "mode", sleepMode)
 
-	var err error
+	var err error = nil
 	if err = d.SetSleep(sleepMode); err != nil {
 		log.Error("Could not set sleep mode", "mode", sleepMode, "error", err)
 	}
