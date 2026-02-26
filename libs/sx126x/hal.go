@@ -462,8 +462,8 @@ func (d *Device) ModulationPS(pulseShape float32) OptionsModulation {
 	}
 }
 
-func (d *Device) ModulationFD(freqDerivation uint64) OptionsModulation {
-	fd := freqDerivation
+func (d *Device) ModulationFD(freqDeviation uint64) OptionsModulation {
+	fd := freqDeviation
 	fd = (fd * 33554432) / RfFrequencyXtal
 
 	return func(cfg *ConfigModulation) {
@@ -487,14 +487,24 @@ type ConfigPacket struct {
 
 type OptionsPacket func(*ConfigPacket)
 
-func (d *Device) PacketConfig(preambleLength uint16, headerType LoRaHeaderType, payloadLength uint8, crc LoRaCrcMode, iqMode LoRaIQMode) OptionsPacket {
-	// TODO : ADD FSK MODULATION CONFIG
+func (d *Device) PacketLoRaConfig(preambleLength uint16, headerType LoRaHeaderType, payloadLength uint8, crc LoRaCrcMode, iqMode LoRaIQMode) OptionsPacket {
 	return func(cfg *ConfigPacket) {
 		cfg.PreambleLength = preambleLength
 		cfg.HeaderType = uint8(headerType)
 		cfg.PayloadLength = payloadLength
 		cfg.CRC = uint8(crc)
 		cfg.IQMode = uint8(iqMode)
+	}
+}
+
+func (d *Device) PacketFskConfig(preambleDetLen FskPreambleDetector, syncWordLength FskSyncWord, addrCmp FskAddressComp, packet PacketType, crc FskCrcType, whitening FskWhitening) OptionsPacket {
+	return func(cfg *ConfigPacket) {
+		cfg.PreambleDetectionLength = uint8(preambleDetLen)
+		cfg.SyncWordDetectionLength = uint8(syncWordLength)
+		cfg.AddresComparison = uint8(addrCmp)
+		cfg.PacketType = uint8(packet)
+		cfg.CRC_FSK = uint8(crc)
+		cfg.Whitening = uint8(whitening)
 	}
 }
 
@@ -531,6 +541,36 @@ func (d *Device) PacketFskCRC(crc FskCrcType) OptionsPacket {
 func (d *Device) PacketIQ(iqMode LoRaIQMode) OptionsPacket {
 	return func(cfg *ConfigPacket) {
 		cfg.IQMode = uint8(iqMode)
+	}
+}
+
+func (d *Device) PacketPreDet(length FskPreambleDetector) OptionsPacket {
+	return func(cfg *ConfigPacket) {
+		cfg.PreambleDetectionLength = uint8(length)
+	}
+}
+
+func (d *Device) PacketFskSW(length FskSyncWord) OptionsPacket {
+	return func(cfg *ConfigPacket) {
+		cfg.SyncWordDetectionLength = uint8(length)
+	}
+}
+
+func (d *Device) PacketAddrCmp(mode FskAddressComp) OptionsPacket {
+	return func(cfg *ConfigPacket) {
+		cfg.AddresComparison = uint8(mode)
+	}
+}
+
+func (d *Device) PacketFskType(packet PacketType) OptionsPacket {
+	return func(cfg *ConfigPacket) {
+		cfg.PacketType = uint8(packet)
+	}
+}
+
+func (d *Device) PacketWhitening(whitening FskWhitening) OptionsPacket {
+	return func(cfg *ConfigPacket) {
+		cfg.Whitening = uint8(whitening)
 	}
 }
 
@@ -678,6 +718,29 @@ func (d *Device) CADTimeout(timeout uint32) OptionsCAD {
 	return func(cfg *ConfigCAD) {
 		cfg.Timeout = timeout
 	}
+}
+
+func cadSymbolNumber(number uint8) (CadSymbolNum, bool) {
+	byteToSym := map[uint8]CadSymbolNum{
+		1:  CadOn1Symb,
+		2:  CadOn2Symb,
+		4:  CadOn4Symb,
+		8:  CadOn8Symb,
+		16: CadOn16Symb,
+	}
+
+	sm, ok := byteToSym[number]
+	return sm, ok
+}
+
+func cadExitMode(mode uint8) (CadExitMode, bool) {
+	byteToSym := map[uint8]CadExitMode{
+		0: CadExitStdby,
+		1: CadExitRx,
+	}
+
+	em, ok := byteToSym[mode]
+	return em, ok
 }
 
 func (d *Device) EnqueueTx(payload []uint8) error {

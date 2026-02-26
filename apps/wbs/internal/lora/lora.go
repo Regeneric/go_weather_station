@@ -60,7 +60,7 @@ type Transceiver interface {
 
 	PaConfig(txPower int8, paDutyCycle, hpMax, paLut uint8, deviceSel sx126x.PaConfigDeviceSel) sx126x.OptionsPa
 	ModulationConfigLoRa(spreadingFactor, codingRate uint8, bandwidth physic.Frequency, ldro bool) sx126x.OptionsModulation
-	PacketConfig(preambleLength uint16, headerType sx126x.LoRaHeaderType, payloadLength uint8, crc sx126x.LoRaCrcMode, iqMode sx126x.LoRaIQMode) sx126x.OptionsPacket
+	PacketLoRaConfig(preambleLength uint16, headerType sx126x.LoRaHeaderType, payloadLength uint8, crc sx126x.LoRaCrcMode, iqMode sx126x.LoRaIQMode) sx126x.OptionsPacket
 	CADConfig(symbol sx126x.CadSymbolNum, detectionPeak, detectionMin uint8, exitMode sx126x.CadExitMode, timeout uint32) sx126x.OptionsCAD
 
 	EnqueueTx(payload []uint8) error
@@ -245,7 +245,7 @@ func Setup(modem Transceiver, cfg *sx126x.Config) (*Node, func(), error) {
 		iq = sx126x.IqInverted
 	}
 
-	if err := modem.SetPacketParams(modem.PacketConfig(cfg.PreambleLength, header, cfg.PayloadLength, crc, iq)); err != nil {
+	if err := modem.SetPacketParams(modem.PacketLoRaConfig(cfg.PreambleLength, header, cfg.PayloadLength, crc, iq)); err != nil {
 		cleanup()
 		return nil, func() {}, err
 	}

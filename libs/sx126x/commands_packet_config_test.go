@@ -9,12 +9,6 @@ import (
 	"periph.io/x/conn/v3/physic"
 )
 
-// SetPacketType(packet PacketType) error
-// GetPacketType() (uint8, error)
-// SetModulationParams(opts ...OptionsModulation) error
-// SetPacketParams(opts ...OptionsPacket) error
-// SetCadParams(opts ...OptionsCAD) error
-
 func init() {
 	discardHandler := slog.NewTextHandler(io.Discard, nil)
 	slog.SetDefault(slog.New(discardHandler))
@@ -803,6 +797,7 @@ func TestSetModulationParams(t *testing.T) {
 			cfg := Config{
 				Modem:     tc.modem,
 				Bandwidth: tc.bw,
+				// Workarounds: &Workarounds{},  // TODO: Add 15.1 Modulation Quality with 500 kHz LoRa Bandwidth workaround to tests
 			}
 
 			if tc.loraCfg != nil {
@@ -952,6 +947,24 @@ func TestSetPacketParams(t *testing.T) {
 			fsk:           nil,
 			options:       nil,
 			expectedBytes: []uint8{0x8C, 0x00, 0x08, 0x00, 0x40, 0x00, 0x00},
+			expectError:   false,
+		},
+		{
+			name:     "Preamble12_HeaderExplicit_Payload32_CRCOn_IQInverted_LoRa_PacketLoRaConfig",
+			desc:     "",
+			modem:    "lora",
+			preamble: 0xFF,
+			payload:  0xFF,
+			lora: &lora{
+				headerImplicit: true,
+				crc:            false,
+				invertedIQ:     false,
+			},
+			fsk: nil,
+			options: func(d *Device) []OptionsPacket {
+				return []OptionsPacket{d.PacketLoRaConfig(12, HeaderExplicit, 32, CrcOn, IqInverted)}
+			},
+			expectedBytes: []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
 			expectError:   false,
 		},
 		{
@@ -1246,15 +1259,162 @@ func TestSetPacketParams(t *testing.T) {
 			payload:  32,
 			lora:     nil,
 			fsk: &fsk{
-				preDetector: PreambleDetLen16,   // todo
-				syncWord:    FskSyncWordLength2, // todo
-				addrComp:    0,                  // todo
-				packetType:  "variable",         // todo
+				preDetector: PreambleDetLen16,
+				syncWord:    FskSyncWordLength2,
+				addrComp:    0,
+				packetType:  "variable",
 				crc:         "0",
-				whitening:   true, // todo
+				whitening:   true,
 			},
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketFskCRC(CRC2)}
+			},
+			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError:   false,
+		},
+		{
+			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskCRC_PacketPreDet",
+			desc:     "",
+			modem:    "fsk",
+			preamble: 32,
+			payload:  32,
+			lora:     nil,
+			fsk: &fsk{
+				preDetector: 0,
+				syncWord:    FskSyncWordLength2,
+				addrComp:    0,
+				packetType:  "variable",
+				crc:         "0",
+				whitening:   true,
+			},
+			options: func(d *Device) []OptionsPacket {
+				return []OptionsPacket{d.PacketFskCRC(CRC2), d.PacketPreDet(PreambleDetLen16)}
+			},
+			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError:   false,
+		},
+		{
+			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketPreDet",
+			desc:     "",
+			modem:    "fsk",
+			preamble: 32,
+			payload:  32,
+			lora:     nil,
+			fsk: &fsk{
+				preDetector: 0,
+				syncWord:    FskSyncWordLength2,
+				addrComp:    0,
+				packetType:  "variable",
+				crc:         "2",
+				whitening:   true,
+			},
+			options: func(d *Device) []OptionsPacket {
+				return []OptionsPacket{d.PacketPreDet(PreambleDetLen16)}
+			},
+			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError:   false,
+		},
+		{
+			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskSW",
+			desc:     "",
+			modem:    "fsk",
+			preamble: 32,
+			payload:  32,
+			lora:     nil,
+			fsk: &fsk{
+				preDetector: PreambleDetLen16,
+				syncWord:    0,
+				addrComp:    0,
+				packetType:  "variable",
+				crc:         "2",
+				whitening:   true,
+			},
+			options: func(d *Device) []OptionsPacket {
+				return []OptionsPacket{d.PacketFskSW(FskSyncWordLength2)}
+			},
+			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError:   false,
+		},
+		{
+			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketAddrCmp",
+			desc:     "",
+			modem:    "fsk",
+			preamble: 32,
+			payload:  32,
+			lora:     nil,
+			fsk: &fsk{
+				preDetector: PreambleDetLen16,
+				syncWord:    FskSyncWordLength2,
+				addrComp:    0xFF,
+				packetType:  "variable",
+				crc:         "2",
+				whitening:   true,
+			},
+			options: func(d *Device) []OptionsPacket {
+				return []OptionsPacket{d.PacketAddrCmp(AddrCompOff)}
+			},
+			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError:   false,
+		},
+		{
+			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskType",
+			desc:     "",
+			modem:    "fsk",
+			preamble: 32,
+			payload:  32,
+			lora:     nil,
+			fsk: &fsk{
+				preDetector: PreambleDetLen16,
+				syncWord:    FskSyncWordLength2,
+				addrComp:    0,
+				packetType:  "static",
+				crc:         "2",
+				whitening:   true,
+			},
+			options: func(d *Device) []OptionsPacket {
+				return []OptionsPacket{d.PacketFskType(PacketTypeGFSKVariable)}
+			},
+			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError:   false,
+		},
+		{
+			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketWhitening",
+			desc:     "",
+			modem:    "fsk",
+			preamble: 32,
+			payload:  32,
+			lora:     nil,
+			fsk: &fsk{
+				preDetector: PreambleDetLen16,
+				syncWord:    FskSyncWordLength2,
+				addrComp:    0,
+				packetType:  "variable",
+				crc:         "2",
+				whitening:   false,
+			},
+			options: func(d *Device) []OptionsPacket {
+				return []OptionsPacket{d.PacketWhitening(WhiteningOn)}
+			},
+			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError:   false,
+		},
+		{
+			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskConfig",
+			desc:     "",
+			modem:    "fsk",
+			preamble: 32,
+			payload:  32,
+			lora:     nil,
+			fsk: &fsk{
+				preDetector: 0xFF,
+				syncWord:    0xFF,
+				addrComp:    0xFF,
+				packetType:  "",
+				crc:         "",
+				whitening:   false,
+			},
+			options: func(d *Device) []OptionsPacket {
+				return []OptionsPacket{d.PacketFskConfig(PreambleDetLen16, FskSyncWordLength2, AddrCompOff, PacketTypeGFSKVariable, CRC2, WhiteningOn)}
 			},
 			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
 			expectError:   false,
@@ -1278,7 +1438,10 @@ func TestSetPacketParams(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			spi := MockSPI{}
-			cfg := Config{Modem: tc.modem}
+			cfg := Config{
+				Modem: tc.modem,
+				// Workarounds: &Workarounds{},	// TODO: Add 15.4 Optimizing the Inverted IQ Operation workaround tests
+			}
 
 			if tc.lora != nil {
 				cfg.PreambleLength = tc.preamble
@@ -1318,6 +1481,256 @@ func TestSetPacketParams(t *testing.T) {
 
 			if err != nil {
 				t.Fatalf("FAIL: %s\nSetPacketParams returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			}
+		})
+	}
+}
+
+func TestSetCadParams(t *testing.T) {
+	tests := []struct {
+		name          string
+		desc          string
+		params        *ConfigCAD
+		options       func(d *Device) []OptionsCAD
+		expectedBytes []uint8
+	}{
+		{
+			name: "SymbolNum2_DetectPeak20_DetectMin10_ExitRX_Timeout100_Default",
+			desc: "Verifies that the driver correctly formats the SPI command with standard CAD parameters, utilizing 2 symbols for detection and automatically entering RX mode upon success.",
+			params: &ConfigCAD{
+				SymbolNumber:     2,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         1,
+				Timeout:          100,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum0_DetectPeak20_DetectMin10_ExitRX_Timeout100_Default",
+			desc: "Verifies the driver's fallback logic when provided with an invalid symbol number, ensuring it safely clamps to a standard default value (e.g., 2 symbols).",
+			params: &ConfigCAD{
+				SymbolNumber:     0,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         1,
+				Timeout:          100,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum2_DetectPeak20_DetectMin10_ExitInvalid_Timeout100_Default",
+			desc: "Verifies the driver's fallback logic when provided with an invalid exit mode, ensuring it safely defaults to entering RX mode.",
+			params: &ConfigCAD{
+				SymbolNumber:     2,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         0xFF,
+				Timeout:          100,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum0_DetectPeak0_DetectMin0_ExitInvalid_Timeout0_Default",
+			desc: "Verifies the comprehensive fallback logic when provided with entirely zeroed or invalid boundary parameters, ensuring safe driver operation and payload construction.",
+			params: &ConfigCAD{
+				SymbolNumber:     0,
+				DetectionPeak:    0,
+				DetectionMinimum: 0,
+				ExitMode:         0xFF,
+				Timeout:          0,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x88, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+		},
+		{
+			name: "SymbolNumMax8bit_DetectPeakMax8bit_DetectMinMax8bit_ExitMax8bit_TimeoutMax24bit_Default",
+			desc: "Verifies the mathematical stability and bitwise packing logic when all CAD parameters are set to their maximum theoretical bounds.",
+			params: &ConfigCAD{
+				SymbolNumber:     0xFF,
+				DetectionPeak:    0xFF,
+				DetectionMinimum: 0xFF,
+				ExitMode:         0xFF,
+				Timeout:          0xFFFFFF,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x88, 0x01, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF},
+		},
+		{
+			name: "SymbolNum2_DetectPeak20_DetectMin10_ExitRX_TimeoutOverflow_Default",
+			desc: "Verifies the driver correctly handles a timeout value exceeding the 24-bit limit, clamping it safely to the maximum allowable value (0xFFFFFF) without bitwise corruption.",
+			params: &ConfigCAD{
+				SymbolNumber:     2,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         1,
+				Timeout:          0x12FFFFFF,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0xFF, 0xFF, 0xFF},
+		},
+		{
+			name: "SymbolNum2_DetectPeak20_DetectMin10_ExitStandby_TimeoutShift_Default",
+			desc: "Verifies the multibyte bitwise shift logic for the 24-bit timeout parameter using a recognizable hex pattern to ensure accurate byte ordering.",
+			params: &ConfigCAD{
+				SymbolNumber:     2,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         0,
+				Timeout:          0x123456,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x00, 0x12, 0x34, 0x56},
+		},
+		{
+			name: "SymbolNum16_DetectPeak20_DetectMin10_ExitRX_Timeout100_Default",
+			desc: "",
+			params: &ConfigCAD{
+				SymbolNumber:     16,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         0,
+				Timeout:          0x123456,
+			},
+			options:       nil,
+			expectedBytes: []uint8{0x88, 0x04, 0x14, 0x0A, 0x00, 0x12, 0x34, 0x56},
+		},
+		{
+			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADSym",
+			desc: "",
+			params: &ConfigCAD{
+				SymbolNumber:     0,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         1,
+				Timeout:          100,
+			},
+			options: func(d *Device) []OptionsCAD {
+				return []OptionsCAD{d.CADSym(CadOn4Symb)}
+			},
+			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADConfig",
+			desc: "",
+			params: &ConfigCAD{
+				SymbolNumber:     0,
+				DetectionPeak:    0,
+				DetectionMinimum: 0,
+				ExitMode:         0,
+				Timeout:          0,
+			},
+			options: func(d *Device) []OptionsCAD {
+				return []OptionsCAD{d.CADConfig(CadOn4Symb, 20, 10, CadExitRx, 100)}
+			},
+			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADPeak",
+			desc: "",
+			params: &ConfigCAD{
+				SymbolNumber:     4,
+				DetectionPeak:    0,
+				DetectionMinimum: 10,
+				ExitMode:         1,
+				Timeout:          100,
+			},
+			options: func(d *Device) []OptionsCAD {
+				return []OptionsCAD{d.CADPeak(20)}
+			},
+			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADMin",
+			desc: "",
+			params: &ConfigCAD{
+				SymbolNumber:     4,
+				DetectionPeak:    20,
+				DetectionMinimum: 0,
+				ExitMode:         1,
+				Timeout:          100,
+			},
+			options: func(d *Device) []OptionsCAD {
+				return []OptionsCAD{d.CADMin(10)}
+			},
+			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADExit",
+			desc: "",
+			params: &ConfigCAD{
+				SymbolNumber:     4,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         0,
+				Timeout:          100,
+			},
+			options: func(d *Device) []OptionsCAD {
+				return []OptionsCAD{d.CADExit(CadExitRx)}
+			},
+			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADTimeout",
+			desc: "",
+			params: &ConfigCAD{
+				SymbolNumber:     4,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         1,
+				Timeout:          0,
+			},
+			options: func(d *Device) []OptionsCAD {
+				return []OptionsCAD{d.CADTimeout(100)}
+			},
+			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+		{
+			name: "SymbolNum16_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADTimeout_CADSym",
+			desc: "",
+			params: &ConfigCAD{
+				SymbolNumber:     0,
+				DetectionPeak:    20,
+				DetectionMinimum: 10,
+				ExitMode:         1,
+				Timeout:          0,
+			},
+			options: func(d *Device) []OptionsCAD {
+				return []OptionsCAD{d.CADTimeout(100), d.CADSym(CadOn16Symb)}
+			},
+			expectedBytes: []uint8{0x88, 0x04, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			spi := MockSPI{}
+			cfg := Config{
+				CAD: &CAD{
+					SymbolNumber:     tc.params.SymbolNumber,
+					DetectionPeak:    tc.params.DetectionPeak,
+					DetectionMinimum: tc.params.DetectionMinimum,
+					ExitMode:         tc.params.ExitMode,
+					Timeout:          tc.params.Timeout,
+				},
+			}
+			dev := Device{SPI: &spi, Config: &cfg}
+
+			var opts []OptionsCAD
+			if tc.options != nil {
+				opts = tc.options(&dev)
+			}
+			err := dev.SetCadParams(opts...)
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nSetCadParams returned: %v", tc.desc, err)
 			}
 
 			if !bytes.Equal(spi.TxData, tc.expectedBytes) {

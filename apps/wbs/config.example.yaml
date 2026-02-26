@@ -17,7 +17,7 @@ mqtt:
 spi:
   enable: false                     # Control ALL SPI buses                                                         ; default: false
   device:       
-    spi0:
+    spi0:                           # Any name you like                                                             ; default: spi0
       enable: false                 # Control single (this) SPI bus                                                 ; default: false
       name: 0                       # 0 == /dev/spidev0.0                                                           ; default: 0
       speed: 10_000_000             # 10 MHz                                                                        ; default: 10_000_000 (Hz)
@@ -33,7 +33,7 @@ spi:
 i2c:
   enable: false                     # Control ALL I2C buses                                                         ; default: false
   device:
-    i2c0:
+    i2c0:                           # Any name you like                                                             ; default: i2c0
       enable: false                 # Control single (this) I2C bus                                                 ; default: false
       name: 0                       # 0 == /dev/i2c-0
     i2c1:
@@ -43,7 +43,7 @@ i2c:
 uart:
   enable: false                     # Control ALL UART buses                                                        ; default: false
   device:
-    uart0:
+    uart0:                          # Any name you like                                                             ; default: uart0
       enable: false                 # Control single (this) UART bus                                                ; default: false
       name: 0                       # 0 == /dev/ttyAMA0
       speed: 9600                   # Baud rate
@@ -63,7 +63,7 @@ uart:
 onewire:
   enable: false                     # Control ALL 1W buses                                                          ; default: false
   device:
-    ow0:
+    ow0:                            # Any name you like                                                             ; default: ow0
       enable: false                 # Control single (this) 1W bus                                                  ; default: false
       name: 1                       # 1 == /sys/bus/w1/devices/w1_bus_master1
     ow1:
@@ -72,55 +72,68 @@ onewire:
 
 lora:
   enable: false                     #                                                                               ; default: false
-  modem: "lora"                     # lora / fsk                                                                    ; default: lora
-  type: "1262"                      # 1261 / 1262                                                                   ; default: 1262
-  bandwidth: 125_000                # 125 kHz                                                                       ; default: 125_000 (Hz)
-  spreding_factor: 7                # 7 - 12                                                                        ; default: 7
-  coding_rate: 5                    # (FSK only: 4 - 4/4) ; 5 - 4/5 ; 6 - 4/6 ; 7 - 4/7 ; 8 - 4/8                   ; default: 5
-  ldro: false                       # Low Data Rate Optimize                                                        ; default: false
-  dc_dc: false                      # Internal DC-DC converter                                                      ; default: false
-  header_implicit: false            # false - explicit ; true - implicit                                            ; default: false (aka explicit)
-  frequency: 433_000_000            # 433 MHz                                                                       ; default: 433_000_000 (Hz)
-  preamble_length: 12               # Symbols (time(ms) = len*(2^sf/bw(kHz))+4.25)                                  ; default: 12 (16.5 ms)
-  payload_length: 32                # Bytes (MTU)                                                                   ; default: 32
-  crc: true                         # Error correction                                                              ; default: true
-  inverted_iq: false                # false - standard ; true - inverted                                            ; default: false
-  sync_word: 0x1424                 # 0x1424 - private network ; 0x3444 - public network                            ; default: 0x1424
-  tx_power: 0                       # -12 - +22 dBm                                                                 ; default: 0 (dBm)
-  standby_mode: "rc"                # rc / xosc                                                                     ; default: rc
-  sleep_mode: "warm_start"          # cold_start ; warm_start ; cold_start_rtc ; warm_start_rtc                     ; default: cold_start
-  frequency_range:                  # 430-440 ; 470-510 ; 779-787 ; 863-870 ; 902-928                               ; default: 430-440 (MHz)  
+  modem: "lora"                     # lora / fsk                                                                    ; default: lora                 ; lora / fsk
+  type: "1262"                      # 1261 / 1262                                                                   ; default: 1262                 ; lora / fsk
+  bandwidth: 125_000                # 125 kHz                                                                       ; default: 125_000 (Hz)         ; lora / fsk
+  spreading_factor: 7               # 7 - 12                                                                        ; default: 7                    ; lora
+  coding_rate: 5                    # 5 - 4/5 ; 6 - 4/6 ; 7 - 4/7 ; 8 - 4/8                                         ; default: 5                    ; lora
+  ldro: false                       # Low Data Rate Optimize                                                        ; default: false                ; lora
+  dc_dc: false                      # Internal DC-DC converter                                                      ; default: false                ; lora / fsk
+  header_implicit: false            # false - explicit ; true - implicit                                            ; default: false (aka explicit) ; lora
+  frequency: 433_000_000            # 433 MHz                                                                       ; default: 433_000_000 (Hz)     ; lora / fsk
+  preamble_length: 12               # Symbols (time(ms) = len*(2^sf/bw(kHz))+4.25)                                  ; default: 12 (16.5 ms)         ; lora / fsk
+  payload_length: 32                # Bytes (MTU)                                                                   ; default: 32                   ; lora / fsk
+  crc: true                         # LoRa error correction                                                         ; default: true                 ; lora
+  inverted_iq: false                # false - standard ; true - inverted                                            ; default: false                ; lora
+  sync_word: 0x1424                 # 0x1424 - private network ; 0x3444 - public network                            ; default: 0x1424               ; lora
+  tx_power: 0                       # -12 - +22 dBm                                                                 ; default: 0 (dBm)              ; lora / fsk
+  standby_mode: "rc"                # rc / xosc                                                                     ; default: rc                   ; lora / fsk
+  sleep_mode: "warm_start"          # cold_start ; warm_start ; cold_start_rtc ; warm_start_rtc                     ; default: cold_start           ; lora / fsk
+  frequency_range:                  # 430-440 ; 470-510 ; 779-787 ; 863-870 ; 902-928                               ; default: 430-440 (MHz)        ; lora / fsk
     - 430
     - 440
-  ramp_time: 800                    # 10 - 3400 us                                                                  ; default: 800 (us)
-  dio2_as_rf_switch: true           # Configure DIO2 so that it can be used to control an external RF switch        ; default: true
-  rx_queue_size: 10                 # Size of byte array channel                                                    ; default: 10
-  tx_queue:size: 10                 # Size of byte array channel                                                    ; default: 10
-  rx_buffer_address: 128            # Start address of RX buffer (0-255)                                            ; default: 128
-  tx_buffer_address: 0              # Start address of TX buffer (0-255)                                            ; default: 0
-  tx_timeout: 0                     # Timeout * 15.625 us (0 to disable)                                            ; default: 0
+  ramp_time: 800                    # 10 - 3400 us                                                                  ; default: 800 (us)             ; lora / fsk
+  dio2_as_rf_switch: true           # Configure DIO2 so that it can be used to control an external RF switch        ; default: true                 ; lora / fsk
+  rx_queue_size: 10                 # Size of byte array channel                                                    ; default: 10                   ; lora / fsk
+  tx_queue_size: 10                 # Size of byte array channel                                                    ; default: 10                   ; lora / fsk
+  rx_buffer_address: 128            # Start address of RX buffer (0-255)                                            ; default: 128                  ; lora / fsk
+  tx_buffer_address: 0              # Start address of TX buffer (0-255)                                            ; default: 0                    ; lora / fsk
+  tx_timeout: 0                     # Timeout * 15.625 us (0 to disable)                                            ; default: 0                    ; lora / fsk
+  tcxo_voltage: 0                   # 0 - off ; 1.6 ; 1.7 ; 1.8 ; 2.2 ; 2.4 ; 2.7 ; 3.0 ; 3.3                       ; default: 0                    ; lora / fsk
+  tcxo_timeout: 0                   # Timeout in ms                                                                 ; default: 0                    ; lora / fsk
   fsk:                              # Optional, only for FSK mode
-    bitrate: ""                     # 600 - 300000 bytes per second                                                 ; default: none
-    pulse_shape: ""                 # 0.0 ; 0.3 ; 0.5 ; 0.7 ; 1.0                                                   ; default: none
-    frequency_deviation: ""         # ~m == 1                                                                       ; default: none
+    bitrate: ""                     # 600 - 300000 bytes per second                                                 ; default: none                 ; fsk
+    pulse_shape: ""                 # 0.0 ; 0.3 ; 0.5 ; 0.7 ; 1.0                                                   ; default: none                 ; fsk
+    frequency_deviation: ""         # 2400 Hz (m == 1.0)                                                            ; default: none                 ; fsk
+    preamble_detection_length: ""   # 0 ; 8 ; 16 ; 32 ; length in bits                                              ; default: none                 ; fsk
+    sync_word_detection_length: ""  # 0 - 8 ; numbers of bytes to detect                                            ; default: none                 ; fsk
+    address_comparison: ""          # 0 - none ; 1 - on node address ; 2 - on node and broadcast address            ; default: none                 ; fsk
+    packet_type: ""                 # static ; variable                                                             ; default: none                 ; fsk
+    crc: ""                         # off ; 1 ; 2 ; 1_inv 2_inv                                                     ; default: none                 ; fsk
+    whitening: true                 # false - off ; true - on                                                       ; default: true                 ; fsk
   pins:
-    reset: "GPIO18"                 #                                                                               ; default: GPIO18
-    busy: "GPIO20"                  #                                                                               ; default: GPIO20
-    dio: "GPIO16"                   #                                                                               ; default: GPIO16
-    tx_enable: "GPIO6"              #                                                                               ; default: GPIO6
-    rx_enable: ""                   #                                                                               ; default: none
-    cs: "GPIO21"                    #                                                                               ; default: GPIO21
-  cad:
-    symbol_number: 2                # 1 - 16 symbols                                                                ; default: 2 (2 == 2^2 symbols)
-    detection_peak: 20              # 18 - 25                                                                       ; default: 20 (20 for SF7)
-    detection_minimum: 10           # Should always be 10 for SX126x                                                ; default: 10 (10 for SF7)
-    exit_mode: 0                    #                                                                               ; default: 0
-    timeout: 0                      # 0 - no timeout                                                                ; default: 0
+    reset: "GPIO18"                 #                                                                               ; default: GPIO18               ; lora / fsk
+    busy: "GPIO20"                  #                                                                               ; default: GPIO20               ; lora / fsk
+    dio: "GPIO16"                   #                                                                               ; default: GPIO16               ; lora / fsk
+    tx_enable: "GPIO6"              #                                                                               ; default: GPIO6                ; lora / fsk
+    rx_enable: ""                   #                                                                               ; default: none                 ; lora / fsk
+    cs: "GPIO21"                    #                                                                               ; default: GPIO21               ; lora / fsk
+  cad:                              # Optional, only for LoRa mode
+    symbol_number: 2                # 1 - 16 symbols                                                                ; default: 2 (2 == 2^2 symbols) ; lora
+    detection_peak: 20              # 18 - 25                                                                       ; default: 20 (20 for SF7)      ; lora
+    detection_minimum: 10           # Should always be 10 for SX126x                                                ; default: 10 (10 for SF7)      ; lora
+    exit_mode: 0                    #                                                                               ; default: 0                    ; lora
+    timeout: 0                      # 0 - no timeout                                                                ; default: 0                    ; lora
+  workarounds:                      # 15.  Known Limitations
+    bandwidth_500k: false           # 15.1 Modulation Quality with 500 kHz LoRa Bandwidth                           ; default: false                ; lora / fsk
+    tx_clamp_config: false          # 15.2 Better Resistance of the SX1262 Tx to Antenna Mismatch                   ; default: false                ; lora / fsk
+    implicit_header_timeout: false  # 15.3 Implicit Header Mode Timeout Behavior                                    ; default: false                ; lora
+    inverted_iq_loss: false         # 15.4 Optimizing the Inverted IQ Operation                                     ; default: false                ; lora
 
 bme280:
   enable: false                     # Control ALL BME280 sensors                                                    ; default: false
   device:
-    bme280_0:
+    bme280_0:                       # Any name you like                                                             ; default: bme280_0
       enable: false                 # Control single (this) BME280 sensor                                           ; default: false               
       name: ""                      # Any string you like                                                           ; default: none
       use_i2c: true                 # true - I2C ; false - SPI                                                      ; default: true
@@ -136,7 +149,7 @@ bme280:
 dht:
   enable: false                     # Control ALL DHT sensors                                                       ; default: false
   device:
-    dht20_0:
+    dht20_0:                        # Any name you like                                                             ; default: dht20_0
       enable: false                 # Control single (this) DHT sensor                                              ; default: false
       name: ""                      # Any string you like                                                           ; default: none
       type: 20                      # 11 / 22 / 20                                                                  ; default: 20
@@ -156,7 +169,7 @@ dht:
 ds18b20:
   enable: false                     # Control ALL DS18B20 sensors                                                   ; default: false
   device:
-    ds18b20_0:                  
+    ds18b20_0:                      # Any name you like                                                             ; default: ds18b20_0
       enable: false                 # Control single (this) DS18B20 sensor                                          ; default: false
       name: ""                      # Any string you like                                                           ; default: none
       location: ""                  # Any string you like                                                           ; default: none
@@ -168,7 +181,7 @@ ds18b20:
 pms5003:
   enable: false                     # Control ALL PMS5003 sensors                                                   ; default: false
   device:
-    pms5003_0:
+    pms5003_0:                      # Any name you like                                                             ; default: pms5003_0
       enable: false                 # Control single (this) PM5003 sensors                                          ; default: false
       name: ""                      # Any string you like                                                           ; defailt: none
       humidity_compensation: true   # Wet dust particles are bigger                                                 ; default: false
@@ -188,7 +201,7 @@ pms5003:
 sgp30:
   enable: false                     # Control ALL SP30 sensors                                                      ; default: false
   device:
-    sgp30_0:
+    sgp30_0:                        # Any name you like                                                             ; default: sgp30_0
       enable: false                 # Control single (this) SGP30 sensors                                           ; default: false
       name: ""                      # Any string you like                                                           ; default: none
       humidity_compensation: false  # Wet particles are bigger                                                      ; default: false

@@ -59,8 +59,10 @@ func New(conn spi.Conn, cfg *Config) (*Device, error) {
 	if err := pins.dio.In(gpio.PullDown, gpio.RisingEdge); err != nil {
 		return nil, fmt.Errorf("Failed to set DIO1 pin pull down and edge detection: %w", err)
 	}
-	if err := pins.txEn.Out(gpio.Low); err != nil {
-		return nil, fmt.Errorf("Failed to set TxEn pin state to LOW: %w", err)
+	if pins.txEn != nil {
+		if err := pins.txEn.Out(gpio.Low); err != nil {
+			return nil, fmt.Errorf("Failed to set TxEn pin state to LOW: %w", err)
+		}
 	}
 	if pins.rxEn != nil {
 		if err := pins.rxEn.Out(gpio.Low); err != nil {

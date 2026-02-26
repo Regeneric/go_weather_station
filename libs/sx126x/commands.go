@@ -306,6 +306,14 @@ func (d *Device) SetPaConfig(opts ...OptionsPa) error {
 		return fmt.Errorf("Could not set PA calibration params: %w", err)
 	}
 
+	// 15.2 Better Resistance of the SX1262 Tx to Antenna Mismatch
+	if d.Config.Workarounds != nil && d.Config.Workarounds.TxClampConfig == true {
+		log.Debug("Applying Workaround 15.2: Tx Clamp Config")
+		if err := d.ErrataTxClamp(d.Config.Workarounds.TxClampConfig); err != nil {
+			return err
+		}
+	}
+
 	log.Info("SX126x modem PA calibration params set")
 	return nil
 }
@@ -650,6 +658,14 @@ func (d *Device) SetModulationParams(opts ...OptionsModulation) error {
 		return fmt.Errorf("Could not set modulation params: %w", err)
 	}
 
+	// 15.1 Modulation Quality with 500 kHz LoRa Bandwidth
+	if d.Config.Workarounds != nil && d.Config.Workarounds.Bandwidth500k == true {
+		log.Debug("Applying Workaround 15.1: Modulation Quality")
+		if err := d.ErrataModulationQuality(); err != nil {
+			return err
+		}
+	}
+
 	log.Info("SX126x modem modulation params set")
 	return nil
 }
@@ -769,6 +785,14 @@ func (d *Device) SetPacketParams(opts ...OptionsPacket) error {
 		return fmt.Errorf("Could not set packet parameters: %w", err)
 	}
 
+	// 15.4 Optimizing the Inverted IQ Operation
+	if d.Config.Workarounds != nil && d.Config.Workarounds.InvertedIQLoss == true {
+		log.Debug("Applying Workaround 15.4: Inverted IQ")
+		if err := d.ErrataInvertedIQ(d.Config.Workarounds.InvertedIQLoss); err != nil {
+			return err
+		}
+	}
+
 	log.Info("SX126x modem parameters set")
 	return nil
 }
@@ -778,11 +802,25 @@ func (d *Device) SetCadParams(opts ...OptionsCAD) error {
 	log := slog.With("func", "Device.SetCadParams()", "params", "(...OptionsCAD)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Define number of symbols on which CAD operates")
 
+	sm, smOk := cadSymbolNumber(d.Config.CAD.SymbolNumber)
+	if !smOk {
+		sm = CadOn2Symb
+		log.Warn("Unsupported Symbol Number:", "symbolNumber", d.Config.CAD.SymbolNumber)
+		log.Warn("Setting Symbol Number to 2:")
+	}
+
+	em, emOk := cadExitMode(d.Config.CAD.ExitMode)
+	if !emOk {
+		em = CadExitRx
+		log.Warn("Unsupported Exit Mode:", "exitMode", d.Config.CAD.ExitMode)
+		log.Warn("Setting Exit Mode to RX:")
+	}
+
 	cfg := &ConfigCAD{
-		SymbolNumber:     d.Config.CAD.SymbolNumber,
+		SymbolNumber:     uint8(sm),
 		DetectionPeak:    d.Config.CAD.DetectionPeak,
 		DetectionMinimum: d.Config.CAD.DetectionMinimum,
-		ExitMode:         d.Config.CAD.ExitMode,
+		ExitMode:         uint8(em),
 		Timeout:          d.Config.CAD.Timeout,
 	}
 
@@ -989,5 +1027,126 @@ func (d *Device) ClearDeviceErrors(resetInternalCache bool) error {
 	}
 
 	log.Info("SX126x modem reset errors")
+	return nil
+}
+
+// 15.1 Modulation Quality with 500 kHz LoRa Bandwidth
+func (d *Device) ErrataModulationQuality() error {
+	log := slog.With("func", "Device.ErrataModulationQuality()", "params", "(-)", "return", "(error)", "lib", "sx126x")
+	log.Debug("Some sensitivity degradation may be observed on any LoRa device, when receiving signals transmitted by the SX1261/2 with a LoRa BW of 500 kHz.")
+
+	regAddr := RegTxModulation
+	regData := make([]uint8, 1)
+
+	if _, err := d.ReadRegister(uint16(regAddr), regData); err != nil {
+		return fmt.Errorf("Could not read register at address [%#x]: %w", regAddr, err)
+	}
+
+	switch d.Config.Modem {
+	case "lora":
+		if d.Config.Bandwidth == 500000 {
+			regData[0] = regData[0] & 0b11111011 // 15.1.2 Workaround
+		} else {
+			regData[0] = regData[0] | 0b00000100 // 15.1.2 Workaround
+		}
+	case "fsk":
+		regData[0] = regData[0] | 0b00000100 // 15.1.2 Workaround
+	default:
+		return fmt.Errorf("Unknown modem type: %v", d.Config.Modem)
+	}
+
+	if _, err := d.WriteRegister(uint16(regAddr), regData); err != nil {
+		return fmt.Errorf("Could not write data [%# x] to register at address %x: %w", regData[:], regAddr, err)
+	}
+
+	return nil
+}
+
+// 15.2 Better Resistance of the SX1262 Tx to Antenna Mismatch
+func (d *Device) ErrataTxClamp(enable bool) error {
+	log := slog.With("func", "Device.ErrataTxClamp()", "params", "(bool)", "return", "(error)", "lib", "sx126x")
+	log.Debug("Devices are overly protective, causing the chip to back-down its output power when even a reasonable mismatch is detected at the PA output")
+
+	if d.Config.Type != "1262" {
+		return fmt.Errorf("This fix is only applicable to SX1262")
+	}
+
+	regAddr := RegTxClampConfig
+	regData := make([]uint8, 1)
+
+	if _, err := d.ReadRegister(uint16(regAddr), regData); err != nil {
+		return fmt.Errorf("Could not read register at address %x: %w", regAddr, err)
+	}
+
+	if enable == true {
+		regData[0] = regData[0] | 0b00011110 // 15.2.2 Workaround
+	} else {
+		regData[0] = (regData[0] & 0b11100001) | 0b00001000 // 15.2.2 Workaround
+	}
+
+	if _, err := d.WriteRegister(uint16(regAddr), regData); err != nil {
+		return fmt.Errorf("Could not write data [%# x] to register at address %x: %w", regData[:], regAddr, err)
+	}
+
+	return nil
+}
+
+// 15.3 Implicit Header Mode Timeout Behavior
+func (d *Device) ErrataImplicitTimeout() error {
+	log := slog.With("func", "Device.ErrataImplicitTimeout()", "params", "(-)", "return", "(error)", "lib", "sx126x")
+	log.Debug("When receiving LoRa packets in Rx mode with Timeout active, and no header (Implicit Mode), the timer responsible for generating the Timeout (based on the RTC timer) is not stopped on RxDone event")
+
+	if d.Config.Modem == "fsk" {
+		return fmt.Errorf("This fix is only applicable to LoRa mode")
+	}
+
+	regAddrCounter := RegRtcControl
+	regAddrEvent := RegEventMask
+	regData := make([]uint8, 1)
+
+	// 15.3.2 Workaround
+	if _, err := d.WriteRegister(uint16(regAddrCounter), []uint8{0x00}); err != nil {
+		return fmt.Errorf("Could not write data [%# x] to register at address %x: %w", 0x00, regAddrCounter, err)
+	}
+
+	if _, err := d.ReadRegister(uint16(regAddrEvent), regData); err != nil {
+		return fmt.Errorf("Could not read register at address %x: %w", regAddrEvent, err)
+	}
+
+	// 15.3.2 Workaround
+	regData[0] = regData[0] | 0b00000010
+	if _, err := d.WriteRegister(uint16(regAddrEvent), regData); err != nil {
+		return fmt.Errorf("Could not write data [%# x] to register at address %x: %w", regData[:], regAddrEvent, err)
+	}
+
+	return nil
+}
+
+// 15.4 Optimizing the Inverted IQ Operation
+func (d *Device) ErrataInvertedIQ(inverted bool) error {
+	log := slog.With("func", "Device.ErrataInvertedIQ()", "params", "(bool)", "return", "(error)", "lib", "sx126x")
+	log.Debug("When exchanging LoRa packets with inverted IQ polarity, some packet losses may be observed for longer packets.")
+
+	if d.Config.Modem == "fsk" {
+		return fmt.Errorf("This fix is only applicable to LoRa mode")
+	}
+
+	regAddr := RegIqPolaritySetup
+	regData := make([]uint8, 1)
+
+	if _, err := d.ReadRegister(uint16(regAddr), regData); err != nil {
+		return fmt.Errorf("Could not read register at address %x: %w", regAddr, err)
+	}
+
+	if inverted == true {
+		regData[0] = regData[0] & 0b11111011 // 15.4.2 Workaround
+	} else {
+		regData[0] = regData[0] | 0b00000100 // 15.4.2 Workaround
+	}
+
+	if _, err := d.WriteRegister(uint16(regAddr), regData); err != nil {
+		return fmt.Errorf("Could not write data [%# x] to register at address %x: %w", regData[:], regAddr, err)
+	}
+
 	return nil
 }

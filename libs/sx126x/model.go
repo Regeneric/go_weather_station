@@ -6,35 +6,38 @@ import (
 )
 
 type Config struct {
-	Enable          bool     `yaml:"enable" env:"SX126X_ENABLE" env-default:"false"`
-	Modem           string   `yaml:"modem" env:"SX126X_MODEM" env-default:"lora"`
-	Type            string   `yaml:"type" env:"SX126X_TYPE" env-default:"1262"`
-	Bandwidth       uint64   `yaml:"bandwidth" env:"SX126X_BANDWIDTH" env-default:"125000"`
-	SpreadingFactor uint8    `yaml:"spreading_factor" env:"SX126X_SF" env-default:"7"`
-	CodingRate      uint8    `yaml:"coding_rate" env:"SX126X_CR" env-default:"5"`
-	LDRO            bool     `yaml:"ldro" env:"SX126X_LDRO" env-default:"false"`
-	DC_DC           bool     `yaml:"dc_dc" env:"SX126X_DC_DC" env-default:"false"`
-	HeaderImplicit  bool     `yaml:"header_implicit" env:"SX126X_HEADER_IMPLICIT" env-default:"false"`
-	Frequency       uint64   `yaml:"frequency" env:"SX126X_FREQUENCY" env-default:"433000000"`
-	PreambleLength  uint16   `yaml:"preamble_length" env:"SX126X_PREAMBLE_LEN" env-default:"12"`
-	PayloadLength   uint8    `yaml:"payload_length" env:"SX126X_PAYLOAD_LEN" env-default:"32"`
-	CRC             bool     `yaml:"crc" env:"SX126X_CRC" env-default:"true"`
-	InvertedIQ      bool     `yaml:"inverted_iq" env:"SX126X_IQ_INVERTED" env-default:"false"`
-	SyncWord        uint16   `yaml:"sync_word" env:"SX126X_SYNC_WORD" env-default:"5156"` // Aka 0x1424
-	TransmitPower   int8     `yaml:"tx_power" env:"SX126X_TX_POWER" env-default:"0"`
-	StandbyMode     string   `yaml:"standby_mode" env:"SX126X_STANDBY_MODE" env-default:"rc"`
-	SleepMode       string   `yaml:"sleep_mode" env:"SX126X_SLEEP_MODE" env-default:"cold_start"`
-	FrequencyRange  []uint16 `yaml:"frequency_range" env:"SX126X_FREQ_RANGE" env-default:"430,440" env-separator:","`
-	RampTime        uint16   `yaml:"ramp_time" env:"SX126X_RAMP_TIME" env-default:"800"`
-	DIO2AsRfSwitch  bool     `yaml:"dio2_as_rf_switch" env:"SX126X_DIO2_AS_RF_SWITCH" env-default:"true"`
-	RxQueueSize     uint8    `yaml:"rx_queue_size" env:"SX126X_RX_QUEUE_SIZE" env-default:"10"`
-	TxQueueSize     uint8    `yaml:"tx_queue_size" env:"SX126X_TX_QUEUE_SIZE" env-default:"10"`
-	RxBufferAddress uint8    `yaml:"rx_buffer_address" env:"SX126X_RX_BUFFER_ADDRESS" env-default:"128"`
-	TxBufferAddress uint8    `yaml:"tx_buffer_address" env:"SX126X_TX_BUFFER_ADDRESS" env-default:"0"`
-	TransmitTimeout uint32   `yaml:"tx_timeout" env:"SX126X_TX_TIMEOUT" env-default:"0"`
-	FSK             *FSK     `yaml:"fsk"`
-	Pins            *Pins    `yaml:"pins"`
-	CAD             *CAD     `yaml:"cad"`
+	Enable          bool         `yaml:"enable" env:"SX126X_ENABLE" env-default:"false"`
+	Modem           string       `yaml:"modem" env:"SX126X_MODEM" env-default:"lora"`
+	Type            string       `yaml:"type" env:"SX126X_TYPE" env-default:"1262"`
+	Bandwidth       uint64       `yaml:"bandwidth" env:"SX126X_BANDWIDTH" env-default:"125000"`
+	SpreadingFactor uint8        `yaml:"spreading_factor" env:"SX126X_SF" env-default:"7"`
+	CodingRate      uint8        `yaml:"coding_rate" env:"SX126X_CR" env-default:"5"`
+	LDRO            bool         `yaml:"ldro" env:"SX126X_LDRO" env-default:"false"`
+	DC_DC           bool         `yaml:"dc_dc" env:"SX126X_DC_DC" env-default:"false"`
+	HeaderImplicit  bool         `yaml:"header_implicit" env:"SX126X_HEADER_IMPLICIT" env-default:"false"`
+	Frequency       uint64       `yaml:"frequency" env:"SX126X_FREQUENCY" env-default:"433000000"`
+	PreambleLength  uint16       `yaml:"preamble_length" env:"SX126X_PREAMBLE_LEN" env-default:"12"`
+	PayloadLength   uint8        `yaml:"payload_length" env:"SX126X_PAYLOAD_LEN" env-default:"32"`
+	CRC             bool         `yaml:"crc" env:"SX126X_CRC" env-default:"true"`
+	InvertedIQ      bool         `yaml:"inverted_iq" env:"SX126X_IQ_INVERTED" env-default:"false"`
+	SyncWord        uint16       `yaml:"sync_word" env:"SX126X_SYNC_WORD" env-default:"5156"` // Aka 0x1424
+	TransmitPower   int8         `yaml:"tx_power" env:"SX126X_TX_POWER" env-default:"0"`
+	StandbyMode     string       `yaml:"standby_mode" env:"SX126X_STANDBY_MODE" env-default:"rc"`
+	SleepMode       string       `yaml:"sleep_mode" env:"SX126X_SLEEP_MODE" env-default:"cold_start"`
+	FrequencyRange  []uint16     `yaml:"frequency_range" env:"SX126X_FREQ_RANGE" env-default:"430,440" env-separator:","`
+	RampTime        uint16       `yaml:"ramp_time" env:"SX126X_RAMP_TIME" env-default:"800"`
+	DIO2AsRfSwitch  bool         `yaml:"dio2_as_rf_switch" env:"SX126X_DIO2_AS_RF_SWITCH" env-default:"true"`
+	RxQueueSize     uint8        `yaml:"rx_queue_size" env:"SX126X_RX_QUEUE_SIZE" env-default:"10"`
+	TxQueueSize     uint8        `yaml:"tx_queue_size" env:"SX126X_TX_QUEUE_SIZE" env-default:"10"`
+	RxBufferAddress uint8        `yaml:"rx_buffer_address" env:"SX126X_RX_BUFFER_ADDRESS" env-default:"128"`
+	TxBufferAddress uint8        `yaml:"tx_buffer_address" env:"SX126X_TX_BUFFER_ADDRESS" env-default:"0"`
+	TransmitTimeout uint32       `yaml:"tx_timeout" env:"SX126X_TX_TIMEOUT" env-default:"0"`
+	TcxoVoltage     float32      `yaml:"tcxo_voltage" env:"SX126X_TCXO_VOLTAGE" env-default:"0"`
+	TcxoTimeout     uint32       `yaml:"tcxo_timeout" env:"SX126X_TCXO_TIMEOUT" env-default:"0"`
+	FSK             *FSK         `yaml:"fsk"`
+	Pins            *Pins        `yaml:"pins"`
+	CAD             *CAD         `yaml:"cad"`
+	Workarounds     *Workarounds `yaml:"workarounds"`
 }
 
 type FSK struct {
@@ -46,7 +49,7 @@ type FSK struct {
 	AddressComparison       uint8   `yaml:"address_comparison" env:"SX126X_FSK_ADDRESS_COMPARISON"`
 	PacketType              string  `yaml:"packet_type" env:"SX126X_FSK_PACKET_TYPE"`
 	CRC                     string  `yaml:"crc" env:"SX126X_FSK_CRC"`
-	Whitening               bool    `yaml:"whitening" env:"SX126X_FSK_WHITENING"`
+	Whitening               bool    `yaml:"whitening" env:"SX126X_FSK_WHITENING" env-default:"true"`
 }
 
 type Pins struct {
@@ -64,6 +67,13 @@ type CAD struct {
 	DetectionMinimum uint8  `yaml:"detection_minimum" env:"SX126X_CAD_DETECTION_MINIMUM" env-default:"10"`
 	ExitMode         uint8  `yaml:"exit_mode" env:"SX126X_CAD_EXIT_MODE" env-default:"0"`
 	Timeout          uint32 `yaml:"timeout" env:"SX126X_CAD_TIMEOUT" env-default:"0"`
+}
+
+type Workarounds struct {
+	Bandwidth500k         bool `yaml:"bandwidth_500k" env:"SX126X_WORKAROUND_BANDWIDTH_500K" env-default:"false"`
+	TxClampConfig         bool `yaml:"tx_clamp_config" env:"SX126X_WORKAROUND_TX_CLAMP_CONFIG" env-default:"false"`
+	ImplicitHeaderTimeout bool `yaml:"implicit_header_timeout" env:"SX126X_IMPLICIT_HEADER_TIMEOUT" env-default:"false"`
+	InvertedIQLoss        bool `yaml:"inverted_iq_loss" env:"SX126X_INVERTED_IQ_LOSS" env-default:"false"`
 }
 
 type pinsDirection struct {

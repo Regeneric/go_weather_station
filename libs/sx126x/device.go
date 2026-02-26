@@ -4,20 +4,42 @@ package sx126x
 type Register uint16
 
 const (
-	RegFskWhiteningInitialMsb Register = 0x06B8
-	RegFskCrcInitialMsb       Register = 0x06BC
-	RegFskSyncWord0           Register = 0x06C0
-	RegFskNodeAddress         Register = 0x06CD
-	RegIqPolaritySetup        Register = 0x0736
-	RegLoraSyncWordMsb        Register = 0x0740
-	RegTxModulation           Register = 0x0889
-	RegRxGain                 Register = 0x08AC
-	RegTxClampConfig          Register = 0x08D8
-	RegOcpConfiguration       Register = 0x08E7
-	RegRtcControl             Register = 0x0902
-	RegXtaTrim                Register = 0x0911
-	RegXtbTrim                Register = 0x0912
-	RegEventMask              Register = 0x0944
+	RegDIOxOutputEnable         Register = 0x0580
+	RegDIOxInputEnable          Register = 0x0583
+	RegDIOxPullUpControl        Register = 0x0584
+	RegDIOxPullDownControl      Register = 0x0585
+	RegFskWhiteningInitialMsb   Register = 0x06B8
+	RegFSkWhiteningInitialLsb   Register = 0x06B9
+	RegFskCrcInitialMsb         Register = 0x06BC
+	RegFskCrcInitialLsb         Register = 0x06BD
+	RegFskCrcPolyMsb            Register = 0x06BE
+	RegFskCrcPoluLsb            Register = 0x06BF
+	RegFskSyncWord0             Register = 0x06C0
+	RegFskSyncWord1             Register = 0x06C1
+	RegFskSyncWord2             Register = 0x06C2
+	RegFskSyncWord3             Register = 0x06C3
+	RegFskSyncWord4             Register = 0x06C4
+	RegFskSyncWord5             Register = 0x06C5
+	RegFskSyncWord6             Register = 0x06C6
+	RegFskSyncWord7             Register = 0x06C7
+	RegFskNodeAddress           Register = 0x06CD
+	RegFskBroadcastAddress      Register = 0x06CE
+	RegIqPolaritySetup          Register = 0x0736
+	RegLoraSyncWordMsb          Register = 0x0740
+	RegLoraSyncWordLsb          Register = 0x0741
+	RegRandomNumberGen0         Register = 0x0819
+	RegRandomNumberGen1         Register = 0x081A
+	RegRandomNumberGen2         Register = 0x081B
+	RegRandomNumberGen3         Register = 0x081C
+	RegTxModulation             Register = 0x0889
+	RegRxGain                   Register = 0x08AC
+	RegTxClampConfig            Register = 0x08D8
+	RegOcpConfiguration         Register = 0x08E7
+	RegRtcControl               Register = 0x0902
+	RegXtaTrim                  Register = 0x0911
+	RegXtbTrim                  Register = 0x0912
+	RegDIO3OutputVoltageControl Register = 0x0920
+	RegEventMask                Register = 0x0944
 )
 
 //go:generate stringer -type=OpCode

@@ -350,7 +350,11 @@ func TestSetPaConfig(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			spi := MockSPI{}
-			cfg := Config{Type: tc.model, TransmitPower: tc.baseTxPower}
+			cfg := Config{
+				Type:          tc.model,
+				TransmitPower: tc.baseTxPower,
+				// Workarounds: &Workarounds{},  // TODO: Add 15.2 Better Resistance of the SX1262 Tx to Antenna Mismatch workaround tests
+			}
 			dev := Device{SPI: &spi, Config: &cfg}
 
 			err := dev.SetPaConfig(tc.options...) // Options array may be empty, that's fine
