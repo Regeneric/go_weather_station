@@ -956,6 +956,10 @@ func (d *Device) GetStats() (PacketStats, error) {
 	log := slog.With("func", "Device.GetStats()", "params", "(-)", "return", "(PacketStats, error)", "lib", "sx126x")
 	log.Debug("Return the number of informations received on a few last packets")
 
+	if d.Config.Modem != "lora" && d.Config.Modem != "fsk" {
+		return PacketStats{}, fmt.Errorf("Unknown modem type: %v", d.Config.Modem)
+	}
+
 	tx := make([]uint8, 8)
 	tx[0] = uint8(CmdGetStats)
 
@@ -967,7 +971,13 @@ func (d *Device) GetStats() (PacketStats, error) {
 
 	d.Status.Packet.Stats.TotalReceived = (uint16(rx[2])<<8 | uint16(rx[3]))
 	d.Status.Packet.Stats.CrcErrors = (uint16(rx[4])<<8 | uint16(rx[5]))
-	d.Status.Packet.Stats.HeaderErrors = (uint16(rx[6])<<8 | uint16(rx[7]))
+
+	if d.Config.Modem == "lora" {
+		d.Status.Packet.Stats.HeaderErrors = (uint16(rx[6])<<8 | uint16(rx[7]))
+	}
+	if d.Config.Modem == "fsk" {
+		d.Status.Packet.Stats.LengthErrors = (uint16(rx[6])<<8 | uint16(rx[7]))
+	}
 
 	log.Info("SX126x modem packet statistics")
 	return d.Status.Packet.Stats, nil
@@ -1016,7 +1026,7 @@ func (d *Device) ClearDeviceErrors(resetInternalCache bool) error {
 	log := slog.With("func", "Device.ClearDeviceErrors()", "params", "(bool)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Clear all errors recorded in the device")
 
-	commands := []uint8{uint8(CmdResetErrors), OpCodeNop}
+	commands := []uint8{uint8(CmdResetErrors), OpCodeNop, OpCodeNop}
 	if err := d.SPI.Tx(commands, nil); err != nil {
 		return fmt.Errorf("Could not reset device errors: %w", err)
 	}

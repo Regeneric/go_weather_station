@@ -14,25 +14,25 @@ func init() {
 	slog.SetDefault(slog.New(discardHandler))
 }
 
-// # 13.4.2 SetPacketType
+// 13.4.2 SetPacketType
 func TestSetPacketType(t *testing.T) {
 	tests := []struct {
-		name          string
-		desc          string
-		packet        PacketType
-		expectedBytes []uint8
+		name    string
+		desc    string
+		packet  PacketType
+		txBytes []uint8
 	}{
 		{
-			name:          "GFSK",
-			desc:          "Verifies that the driver correctly formats the SPI command to configure the radio transceiver for Gaussian Frequency Shift Keying modulation.",
-			packet:        PacketTypeGFSK,
-			expectedBytes: []uint8{0x8A, 0x00},
+			name:    "GFSK",
+			desc:    "Verifies that the driver correctly formats the SPI command to configure the radio transceiver for Gaussian Frequency Shift Keying modulation.",
+			packet:  PacketTypeGFSK,
+			txBytes: []uint8{0x8A, 0x00},
 		},
 		{
-			name:          "LoRa",
-			desc:          "Verifies that the driver correctly formats the SPI command to configure the radio transceiver for Long Range modulation.",
-			packet:        PacketTypeLoRa,
-			expectedBytes: []uint8{0x8A, 0x01},
+			name:    "LoRa",
+			desc:    "Verifies that the driver correctly formats the SPI command to configure the radio transceiver for Long Range modulation.",
+			packet:  PacketTypeLoRa,
+			txBytes: []uint8{0x8A, 0x01},
 		},
 	}
 
@@ -47,14 +47,14 @@ func TestSetPacketType(t *testing.T) {
 				t.Fatalf("FAIL: %s\nSetPacketType returned: %v", tc.desc, err)
 			}
 
-			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			if !bytes.Equal(spi.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, spi.TxData)
 			}
 		})
 	}
 }
 
-// # 13.4.3 GetPacketType
+// 13.4.3 GetPacketType
 func TestGetPacketType(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -65,15 +65,15 @@ func TestGetPacketType(t *testing.T) {
 	}{
 		{
 			name:     "GFSK",
-			desc:     "",
-			commands: []uint8{0x11, OpCodeNop, OpCodeNop},
+			desc:     "Verifies decoding of the GFSK modulation packet type from the SPI response.",
+			commands: []uint8{uint8(CmdGetPacketType), OpCodeNop, OpCodeNop},
 			tx:       []uint8{0x11, 0x00, 0x00},
 			rx:       []uint8{0x00, 0x01, 0x00},
 		},
 		{
 			name:     "Lora",
-			desc:     "",
-			commands: []uint8{0x11, OpCodeNop, OpCodeNop},
+			desc:     "Verifies decoding of the LoRa modulation packet type from the SPI response.",
+			commands: []uint8{uint8(CmdGetPacketType), OpCodeNop, OpCodeNop},
 			tx:       []uint8{0x11, 0x00, 0x00},
 			rx:       []uint8{0x00, 0x01, 0x01},
 		},
@@ -81,8 +81,7 @@ func TestGetPacketType(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			spi := MockSPI{}
-			spi.RxData = tc.rx
+			spi := MockSPI{RxData: tc.rx}
 			dev := Device{SPI: &spi}
 
 			status, err := dev.GetPacketType()
@@ -111,7 +110,7 @@ func TestGetPacketType(t *testing.T) {
 	}
 }
 
-// # 13.4.5 SetModulationParams
+// 13.4.5 SetModulationParams
 func TestSetModulationParams(t *testing.T) {
 	type lora struct {
 		sf   uint8
@@ -126,15 +125,15 @@ func TestSetModulationParams(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		desc          string
-		modem         string
-		bw            uint64
-		loraCfg       *lora
-		fskCfg        *fsk
-		options       func(d *Device) []OptionsModulation
-		expectedBytes []uint8
-		expectError   bool
+		name        string
+		desc        string
+		modem       string
+		bw          uint64
+		loraCfg     *lora
+		fskCfg      *fsk
+		options     func(d *Device) []OptionsModulation
+		txBytes     []uint8
+		expectError bool
 	}{
 		// LoRa
 		{
@@ -147,10 +146,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR5_LDRO_LoRa_Default",
@@ -162,10 +161,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: true,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:  "SF5_BW125_CR5_NoLDRO_LoRa_Default",
@@ -177,10 +176,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x05, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x05, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF12_BW125_CR5_NoLDRO_LoRa_Default",
@@ -192,10 +191,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x0C, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x0C, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF0_BW125_CR5_NoLDRO_LoRa_Default",
@@ -207,10 +206,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF15_BW125_CR5_NoLDRO_LoRa_Default",
@@ -222,10 +221,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW0_CR5_NoLDRO_LoRa_Default",
@@ -237,10 +236,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW900_CR5_NoLDRO_LoRa_Default",
@@ -252,10 +251,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW7.8_CR5_NoLDRO_LoRa_Default",
@@ -267,10 +266,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x00, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x00, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW500_CR5_NoLDRO_LoRa_Default",
@@ -282,10 +281,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x06, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x06, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR0_NoLDRO_LoRa_Default",
@@ -297,10 +296,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   0,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR8_NoLDRO_LoRa_Default",
@@ -312,10 +311,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   8,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x04, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x04, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR4_NoLDRO_LoRa_Default",
@@ -327,10 +326,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   4,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF5_BW500_CR5_NoLDRO_LoRa_Default",
@@ -342,10 +341,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   5,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x05, 0x06, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x05, 0x06, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF12_BW7.8_CR8_LDRO_LoRa_Default",
@@ -357,10 +356,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   8,
 				ldro: true,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x0C, 0x00, 0x04, 0x01},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x0C, 0x00, 0x04, 0x01},
+			expectError: false,
 		},
 		{
 			name:  "SF0_BW0_CR0_NoLDRO_LoRa_Default",
@@ -372,10 +371,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   0,
 				ldro: false,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF99_BW999_CR99_LDRO_LoRa_Default",
@@ -387,10 +386,10 @@ func TestSetModulationParams(t *testing.T) {
 				cr:   99,
 				ldro: true,
 			},
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
-			expectError:   false,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR5_LDRO_LoRa_ModulationConfigLoRa",
@@ -406,8 +405,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationConfigLoRa(7, 5, 125000*physic.Hertz, true)}
 			},
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR5_NoLDRO_LoRa_ModulationBW",
@@ -423,8 +422,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationBW(125000 * physic.Hertz)}
 			},
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR5_NoLDRO_LoRa_ModulationCR",
@@ -440,8 +439,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationCR(5)}
 			},
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR5_NoLDRO_LoRa_ModulationSF",
@@ -457,8 +456,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationSF(7)}
 			},
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR5_LDRO_LoRa_ModulationLDRO",
@@ -474,8 +473,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationLDRO(true)}
 			},
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:  "SF7_BW125_CR5_NoLDRO_LoRa_ModulationSF_ModulationCR",
@@ -491,8 +490,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationSF(7), d.ModulationCR(5)}
 			},
-			expectedBytes: []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x07, 0x04, 0x01, 0x00},
+			expectError: false,
 		},
 
 		// FSK
@@ -507,9 +506,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 2400,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BR0.6_PS0.5_BW9.7_FD2.4_FSK_Default",
@@ -522,9 +521,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 2400,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x1A, 0x0A, 0xAA, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x1A, 0x0A, 0xAA, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BR300.0_PS0.5_BW9.7_FD2.4_FSK_Default",
@@ -537,9 +536,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 2400,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x00, 0x0D, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x00, 0x0D, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BRMax24bit_PS0.5_BW9.7_FD2.4_FSK_Default",
@@ -552,9 +551,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 2400,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BROverflow_PS0.5_BW9.7_FD2.4_FSK_Default",
@@ -567,9 +566,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 2400,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BRMinNonZero_PS0.5_BW9.7_FD2.4_FSK_Default",
@@ -582,9 +581,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 2400,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BRMsbOnly_PS0.5_BW9.7_FD2.4_FSK_Default",
@@ -597,9 +596,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 2400,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FD0_FSK_Default",
@@ -612,9 +611,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 0,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x00, 0x00},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x00, 0x00},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FDMax24bit_FSK_Default",
@@ -627,9 +626,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 0xFFFFFF,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x0C, 0x6F, 0x78},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x0C, 0x6F, 0x78},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FDMinNonZero_FSK_Default",
@@ -642,9 +641,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 0x000001,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x00, 0x01},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x00, 0x01},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FDMsbOnly_FSK_Default",
@@ -657,9 +656,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.5,
 				fd: 0x800000,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x86, 0x37, 0xBD},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x86, 0x37, 0xBD},
+			expectError: false,
 		},
 		{
 			name:    "BR0.6_PS0_BW4.8_FD0_FSK_Default",
@@ -672,9 +671,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 0.0,
 				fd: 0,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x1A, 0x0A, 0xAA, 0x00, 0x1F, 0x00, 0x00, 0x00},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x1A, 0x0A, 0xAA, 0x00, 0x1F, 0x00, 0x00, 0x00},
+			expectError: false,
 		},
 		{
 			name:    "BR300k_PS1_BW467_FD83_FSK_Default",
@@ -687,9 +686,9 @@ func TestSetModulationParams(t *testing.T) {
 				ps: 1.0,
 				fd: 83500,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8B, 0x00, 0x0D, 0x55, 0x0B, 0x09, 0x01, 0x56, 0x04},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8B, 0x00, 0x0D, 0x55, 0x0B, 0x09, 0x01, 0x56, 0x04},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationConfigFSK",
@@ -705,8 +704,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationConfigFSK(4800, 2400, 9700*physic.Hertz, 0.5)}
 			},
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationBR",
@@ -722,8 +721,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationBR(4800)}
 			},
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationPS",
@@ -739,8 +738,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationPS(0.5)}
 			},
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationFD",
@@ -756,8 +755,8 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationFD(2400)}
 			},
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 		{
 			name:    "BR4.8_PS0.5_BW9.7_FD2.4_FSK_ModulationBR_ModulationPS",
@@ -773,21 +772,21 @@ func TestSetModulationParams(t *testing.T) {
 			options: func(d *Device) []OptionsModulation {
 				return []OptionsModulation{d.ModulationBR(4800), d.ModulationPS(0.5)}
 			},
-			expectedBytes: []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
-			expectError:   false,
+			txBytes:     []uint8{0x8B, 0x03, 0x41, 0x55, 0x09, 0x1E, 0x00, 0x09, 0xD4},
+			expectError: false,
 		},
 
 		// Misc
 		{
-			name:          "UnknownModem",
-			desc:          "Verifies that the driver safely aborts and returns an error when attempting to set modulation parameters for an unsupported or uninitialized modem type.",
-			modem:         "invalid",
-			bw:            0,
-			loraCfg:       nil,
-			fskCfg:        nil,
-			options:       nil,
-			expectedBytes: nil,
-			expectError:   true,
+			name:        "UnknownModem",
+			desc:        "Verifies that the driver safely aborts and returns an error when attempting to set modulation parameters for an unsupported or uninitialized modem type.",
+			modem:       "invalid",
+			bw:          0,
+			loraCfg:     nil,
+			fskCfg:      nil,
+			options:     nil,
+			txBytes:     nil,
+			expectError: true,
 		},
 	}
 
@@ -833,8 +832,8 @@ func TestSetModulationParams(t *testing.T) {
 				t.Fatalf("FAIL: %s\nSetModulationParams returned: %v", tc.desc, err)
 			}
 
-			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			if !bytes.Equal(spi.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, spi.TxData)
 			}
 		})
 	}
@@ -857,16 +856,16 @@ func TestSetPacketParams(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		desc          string
-		modem         string
-		preamble      uint16
-		payload       uint8
-		lora          *lora
-		fsk           *fsk
-		options       func(d *Device) []OptionsPacket
-		expectedBytes []uint8
-		expectError   bool
+		name        string
+		desc        string
+		modem       string
+		preamble    uint16
+		payload     uint8
+		lora        *lora
+		fsk         *fsk
+		options     func(d *Device) []OptionsPacket
+		txBytes     []uint8
+		expectError bool
 	}{
 		// LoRa
 		{
@@ -880,10 +879,10 @@ func TestSetPacketParams(t *testing.T) {
 				crc:            true,
 				invertedIQ:     true,
 			},
-			fsk:           nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
-			expectError:   false,
+			fsk:         nil,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble0_HeaderImplicit_Payload0_CRCOff_IQStandard_LoRa_Default",
@@ -896,10 +895,10 @@ func TestSetPacketParams(t *testing.T) {
 				crc:            false,
 				invertedIQ:     false,
 			},
-			fsk:           nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
-			expectError:   false,
+			fsk:         nil,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+			expectError: false,
 		},
 		{
 			name:     "PreambleMax16bit_HeaderImplicit_PayloadMax8bit_CRCOn_IQInverted_LoRa_Default",
@@ -912,10 +911,10 @@ func TestSetPacketParams(t *testing.T) {
 				crc:            true,
 				invertedIQ:     true,
 			},
-			fsk:           nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0xFF, 0xFF, 0x01, 0xFF, 0x01, 0x01},
-			expectError:   false,
+			fsk:         nil,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0xFF, 0xFF, 0x01, 0xFF, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "PreambleShift_HeaderImplicit_PayloadShift_CRCOn_IQInverted_LoRa_Default",
@@ -928,10 +927,10 @@ func TestSetPacketParams(t *testing.T) {
 				crc:            true,
 				invertedIQ:     true,
 			},
-			fsk:           nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x12, 0x34, 0x01, 0x56, 0x01, 0x01},
-			expectError:   false,
+			fsk:         nil,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x12, 0x34, 0x01, 0x56, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble8_HeaderExplicit_Payload64_CrcOff_IQStandard_LoRa_Default",
@@ -944,10 +943,10 @@ func TestSetPacketParams(t *testing.T) {
 				crc:            false,
 				invertedIQ:     false,
 			},
-			fsk:           nil,
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x08, 0x00, 0x40, 0x00, 0x00},
-			expectError:   false,
+			fsk:         nil,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x08, 0x00, 0x40, 0x00, 0x00},
+			expectError: false,
 		},
 		{
 			name:     "Preamble12_HeaderExplicit_Payload32_CRCOn_IQInverted_LoRa_PacketLoRaConfig",
@@ -964,8 +963,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketLoRaConfig(12, HeaderExplicit, 32, CrcOn, IqInverted)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble12_HeaderExplicit_Payload32_CRCOn_IQInverted_LoRa_PacketPreLen",
@@ -982,8 +981,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketPreLen(12)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble12_HeaderExplicit_Payload32_CRCOn_IQInverted_LoRa_PacketHT",
@@ -1000,8 +999,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketHT(HeaderExplicit)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble12_HeaderExplicit_Payload32_CRCOn_IQInverted_LoRa_PacketPayLen",
@@ -1018,8 +1017,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketPayLen(32)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble12_HeaderExplicit_Payload32_CRCOn_IQInverted_LoRa_PacketIQ",
@@ -1036,8 +1035,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketIQ(IqInverted)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble12_HeaderExplicit_Payload32_CRCOn_IQInverted_LoRa_PacketHT_PacketIQ",
@@ -1054,8 +1053,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketHT(HeaderExplicit), d.PacketIQ(IqInverted)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x0C, 0x00, 0x20, 0x01, 0x01},
+			expectError: false,
 		},
 
 		// FSK
@@ -1074,9 +1073,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "2",
 				whitening:   true,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble0_PreDetector0_SyncWord0_AddrCompOff_PacketStatic_Payload0_CrcOff_WhiteningOff_FSK_Default",
@@ -1093,9 +1092,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "0",
 				whitening:   false,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc1Inverted_WhiteningOn_FSK_Default",
@@ -1112,9 +1111,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "1_inv",
 				whitening:   true,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x04, 0x01},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x04, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "PreambleMax16bit_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_PayloadMax8bit_Crc2Standard_WhiteningOn_FSK_Default",
@@ -1131,9 +1130,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "2",
 				whitening:   true,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0xFF, 0xFF, 0x05, 0x10, 0x00, 0x01, 0xFF, 0x02, 0x01},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0xFF, 0xFF, 0x05, 0x10, 0x00, 0x01, 0xFF, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "PreambleShift_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_PayloadShift_Crc2Standard_WhiteningOn_FSK_Default",
@@ -1150,9 +1149,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "2",
 				whitening:   true,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x12, 0x34, 0x05, 0x10, 0x00, 0x01, 0x56, 0x02, 0x01},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x12, 0x34, 0x05, 0x10, 0x00, 0x01, 0x56, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompNode_PacketStatic_Payload32_Crc1Standard_WhiteningOff_FSK_Default",
@@ -1169,9 +1168,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "1",
 				whitening:   false,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x01, 0x00, 0x20, 0x00, 0x00},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x01, 0x00, 0x20, 0x00, 0x00},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompAll_PacketVariable_Payload32_Crc2Inverted_WhiteningOn_FSK_Default",
@@ -1188,9 +1187,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "2_inv",
 				whitening:   true,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x02, 0x01, 0x20, 0x06, 0x01},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x02, 0x01, 0x20, 0x06, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompAll_PacketInvalid_Payload32_Crc2Invalid_WhiteningOn_FSK_Default",
@@ -1207,9 +1206,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "invalid",
 				whitening:   true,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x02, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x02, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetectorInvalid_SyncWordInvalid_AddrCompInvalid_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_Default",
@@ -1226,9 +1225,9 @@ func TestSetPacketParams(t *testing.T) {
 				crc:         "2",
 				whitening:   true,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			options:     nil,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketPreLen",
@@ -1248,8 +1247,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketPreLen(32)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskCRC",
@@ -1269,8 +1268,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketFskCRC(CRC2)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskCRC_PacketPreDet",
@@ -1290,8 +1289,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketFskCRC(CRC2), d.PacketPreDet(PreambleDetLen16)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketPreDet",
@@ -1311,8 +1310,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketPreDet(PreambleDetLen16)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskSW",
@@ -1332,8 +1331,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketFskSW(FskSyncWordLength2)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketAddrCmp",
@@ -1353,8 +1352,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketAddrCmp(AddrCompOff)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskType",
@@ -1374,8 +1373,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketFskType(PacketTypeGFSKVariable)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketWhitening",
@@ -1395,8 +1394,8 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketWhitening(WhiteningOn)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 		{
 			name:     "Preamble32_PreDetector16_SyncWord2_AddrCompOff_PacketVariable_Payload32_Crc2Standard_WhiteningOn_FSK_PacketFskConfig",
@@ -1416,22 +1415,22 @@ func TestSetPacketParams(t *testing.T) {
 			options: func(d *Device) []OptionsPacket {
 				return []OptionsPacket{d.PacketFskConfig(PreambleDetLen16, FskSyncWordLength2, AddrCompOff, PacketTypeGFSKVariable, CRC2, WhiteningOn)}
 			},
-			expectedBytes: []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
-			expectError:   false,
+			txBytes:     []uint8{0x8C, 0x00, 0x20, 0x05, 0x10, 0x00, 0x01, 0x20, 0x02, 0x01},
+			expectError: false,
 		},
 
 		// Misc
 		{
-			name:          "UnknownModem",
-			desc:          "",
-			modem:         "invalid",
-			preamble:      0,
-			payload:       0,
-			lora:          nil,
-			fsk:           nil,
-			options:       nil,
-			expectedBytes: nil,
-			expectError:   true,
+			name:        "UnknownModem",
+			desc:        "",
+			modem:       "invalid",
+			preamble:    0,
+			payload:     0,
+			lora:        nil,
+			fsk:         nil,
+			options:     nil,
+			txBytes:     nil,
+			expectError: true,
 		},
 	}
 
@@ -1483,8 +1482,8 @@ func TestSetPacketParams(t *testing.T) {
 				t.Fatalf("FAIL: %s\nSetPacketParams returned: %v", tc.desc, err)
 			}
 
-			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			if !bytes.Equal(spi.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, spi.TxData)
 			}
 		})
 	}
@@ -1492,11 +1491,11 @@ func TestSetPacketParams(t *testing.T) {
 
 func TestSetCadParams(t *testing.T) {
 	tests := []struct {
-		name          string
-		desc          string
-		params        *ConfigCAD
-		options       func(d *Device) []OptionsCAD
-		expectedBytes []uint8
+		name    string
+		desc    string
+		params  *ConfigCAD
+		options func(d *Device) []OptionsCAD
+		txBytes []uint8
 	}{
 		{
 			name: "SymbolNum2_DetectPeak20_DetectMin10_ExitRX_Timeout100_Default",
@@ -1508,8 +1507,8 @@ func TestSetCadParams(t *testing.T) {
 				ExitMode:         1,
 				Timeout:          100,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			options: nil,
+			txBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum0_DetectPeak20_DetectMin10_ExitRX_Timeout100_Default",
@@ -1521,8 +1520,8 @@ func TestSetCadParams(t *testing.T) {
 				ExitMode:         1,
 				Timeout:          100,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			options: nil,
+			txBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum2_DetectPeak20_DetectMin10_ExitInvalid_Timeout100_Default",
@@ -1534,8 +1533,8 @@ func TestSetCadParams(t *testing.T) {
 				ExitMode:         0xFF,
 				Timeout:          100,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			options: nil,
+			txBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum0_DetectPeak0_DetectMin0_ExitInvalid_Timeout0_Default",
@@ -1547,8 +1546,8 @@ func TestSetCadParams(t *testing.T) {
 				ExitMode:         0xFF,
 				Timeout:          0,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x88, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
+			options: nil,
+			txBytes: []uint8{0x88, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00},
 		},
 		{
 			name: "SymbolNumMax8bit_DetectPeakMax8bit_DetectMinMax8bit_ExitMax8bit_TimeoutMax24bit_Default",
@@ -1560,8 +1559,8 @@ func TestSetCadParams(t *testing.T) {
 				ExitMode:         0xFF,
 				Timeout:          0xFFFFFF,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x88, 0x01, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF},
+			options: nil,
+			txBytes: []uint8{0x88, 0x01, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF},
 		},
 		{
 			name: "SymbolNum2_DetectPeak20_DetectMin10_ExitRX_TimeoutOverflow_Default",
@@ -1573,8 +1572,8 @@ func TestSetCadParams(t *testing.T) {
 				ExitMode:         1,
 				Timeout:          0x12FFFFFF,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0xFF, 0xFF, 0xFF},
+			options: nil,
+			txBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x01, 0xFF, 0xFF, 0xFF},
 		},
 		{
 			name: "SymbolNum2_DetectPeak20_DetectMin10_ExitStandby_TimeoutShift_Default",
@@ -1586,8 +1585,8 @@ func TestSetCadParams(t *testing.T) {
 				ExitMode:         0,
 				Timeout:          0x123456,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x00, 0x12, 0x34, 0x56},
+			options: nil,
+			txBytes: []uint8{0x88, 0x01, 0x14, 0x0A, 0x00, 0x12, 0x34, 0x56},
 		},
 		{
 			name: "SymbolNum16_DetectPeak20_DetectMin10_ExitRX_Timeout100_Default",
@@ -1599,8 +1598,8 @@ func TestSetCadParams(t *testing.T) {
 				ExitMode:         0,
 				Timeout:          0x123456,
 			},
-			options:       nil,
-			expectedBytes: []uint8{0x88, 0x04, 0x14, 0x0A, 0x00, 0x12, 0x34, 0x56},
+			options: nil,
+			txBytes: []uint8{0x88, 0x04, 0x14, 0x0A, 0x00, 0x12, 0x34, 0x56},
 		},
 		{
 			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADSym",
@@ -1615,7 +1614,7 @@ func TestSetCadParams(t *testing.T) {
 			options: func(d *Device) []OptionsCAD {
 				return []OptionsCAD{d.CADSym(CadOn4Symb)}
 			},
-			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			txBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADConfig",
@@ -1630,7 +1629,7 @@ func TestSetCadParams(t *testing.T) {
 			options: func(d *Device) []OptionsCAD {
 				return []OptionsCAD{d.CADConfig(CadOn4Symb, 20, 10, CadExitRx, 100)}
 			},
-			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			txBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADPeak",
@@ -1645,7 +1644,7 @@ func TestSetCadParams(t *testing.T) {
 			options: func(d *Device) []OptionsCAD {
 				return []OptionsCAD{d.CADPeak(20)}
 			},
-			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			txBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADMin",
@@ -1660,7 +1659,7 @@ func TestSetCadParams(t *testing.T) {
 			options: func(d *Device) []OptionsCAD {
 				return []OptionsCAD{d.CADMin(10)}
 			},
-			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			txBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADExit",
@@ -1675,7 +1674,7 @@ func TestSetCadParams(t *testing.T) {
 			options: func(d *Device) []OptionsCAD {
 				return []OptionsCAD{d.CADExit(CadExitRx)}
 			},
-			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			txBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum4_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADTimeout",
@@ -1690,7 +1689,7 @@ func TestSetCadParams(t *testing.T) {
 			options: func(d *Device) []OptionsCAD {
 				return []OptionsCAD{d.CADTimeout(100)}
 			},
-			expectedBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			txBytes: []uint8{0x88, 0x02, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 		{
 			name: "SymbolNum16_DetectPeak20_DetectMin10_ExitRX_Timeout100_CADTimeout_CADSym",
@@ -1705,7 +1704,7 @@ func TestSetCadParams(t *testing.T) {
 			options: func(d *Device) []OptionsCAD {
 				return []OptionsCAD{d.CADTimeout(100), d.CADSym(CadOn16Symb)}
 			},
-			expectedBytes: []uint8{0x88, 0x04, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
+			txBytes: []uint8{0x88, 0x04, 0x14, 0x0A, 0x01, 0x00, 0x00, 0x64},
 		},
 	}
 
@@ -1733,8 +1732,8 @@ func TestSetCadParams(t *testing.T) {
 				t.Fatalf("FAIL: %s\nSetCadParams returned: %v", tc.desc, err)
 			}
 
-			if !bytes.Equal(spi.TxData, tc.expectedBytes) {
-				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.expectedBytes, spi.TxData)
+			if !bytes.Equal(spi.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, spi.TxData)
 			}
 		})
 	}

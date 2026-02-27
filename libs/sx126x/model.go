@@ -70,8 +70,8 @@ type CAD struct {
 }
 
 type Workarounds struct {
-	Bandwidth500k         bool `yaml:"bandwidth_500k" env:"SX126X_WORKAROUND_BANDWIDTH_500K" env-default:"false"`
-	TxClampConfig         bool `yaml:"tx_clamp_config" env:"SX126X_WORKAROUND_TX_CLAMP_CONFIG" env-default:"false"`
+	Bandwidth500k         bool `yaml:"bandwidth_500k" env:"SX126X_BANDWIDTH_500K" env-default:"false"`
+	TxClampConfig         bool `yaml:"tx_clamp_config" env:"SX126X_TX_CLAMP_CONFIG" env-default:"false"`
 	ImplicitHeaderTimeout bool `yaml:"implicit_header_timeout" env:"SX126X_IMPLICIT_HEADER_TIMEOUT" env-default:"false"`
 	InvertedIQLoss        bool `yaml:"inverted_iq_loss" env:"SX126X_INVERTED_IQ_LOSS" env-default:"false"`
 }
@@ -96,9 +96,10 @@ type BufferStatus struct {
 }
 
 type PacketStats struct {
-	TotalReceived uint16
-	CrcErrors     uint16
-	HeaderErrors  uint16
+	TotalReceived uint16 // LoRa / FSK
+	CrcErrors     uint16 // LoRa / FSK
+	HeaderErrors  uint16 // LoRa
+	LengthErrors  uint16 // FSK
 }
 
 type PacketStatus struct {
