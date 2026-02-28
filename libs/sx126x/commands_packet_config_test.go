@@ -2,15 +2,17 @@ package sx126x
 
 import (
 	"bytes"
+	"io"
+	"log/slog"
 	"testing"
 
 	"periph.io/x/conn/v3/physic"
 )
 
-// func init() {
-// 	discardHandler := slog.NewTextHandler(io.Discard, nil)
-// 	slog.SetDefault(slog.New(discardHandler))
-// }
+func init() {
+	discardHandler := slog.NewTextHandler(io.Discard, nil)
+	slog.SetDefault(slog.New(discardHandler))
+}
 
 // 13.4.2 SetPacketType
 func TestSetPacketType(t *testing.T) {

@@ -90,8 +90,8 @@ type pinsDirection struct {
 }
 
 type ModemStatus struct {
-	Command  uint8
-	ChipMode uint8
+	Command  CommandStatus
+	ChipMode StatusMode
 }
 
 type BufferStatus struct {

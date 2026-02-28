@@ -151,12 +151,11 @@ func main() {
 		slog.Error("Critical SX126x modem failure", "error", err)
 	}
 
-	hkLoRa_0, hkLoRa_0_Close, err := lora.Setup(hkSX1262_0, &cfg.SX126X)
-	defer hkLoRa_0_Close()
-
+	hkLoRa_0, err := lora.New(hkSX1262_0, &cfg.SX126X)
 	if err != nil {
 		slog.Error("Critical LoRa mode modem setup failure", "error", err)
 	}
+	defer hkLoRa_0.Close()
 
 	_ = hkLoRa_0 // Temporary
 	// ------------------------------------------------------------------------

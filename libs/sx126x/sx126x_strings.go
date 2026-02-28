@@ -996,71 +996,45 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[StatusModeStdbyRc-32]
-	_ = x[StatusModeStdbyXosc-48]
-	_ = x[StatusModeFs-64]
-	_ = x[StatusModeRx-80]
-	_ = x[StatusModeTx-96]
+	_ = x[StatusModeStdbyRc-2]
+	_ = x[StatusModeStdbyXosc-3]
+	_ = x[StatusModeFs-4]
+	_ = x[StatusModeRx-5]
+	_ = x[StatusModeTx-6]
 }
 
-const (
-	_StatusMode_name_0 = "StatusModeStdbyRc"
-	_StatusMode_name_1 = "StatusModeStdbyXosc"
-	_StatusMode_name_2 = "StatusModeFs"
-	_StatusMode_name_3 = "StatusModeRx"
-	_StatusMode_name_4 = "StatusModeTx"
-)
+const _StatusMode_name = "StatusModeStdbyRcStatusModeStdbyXoscStatusModeFsStatusModeRxStatusModeTx"
+
+var _StatusMode_index = [...]uint8{0, 17, 36, 48, 60, 72}
 
 func (i StatusMode) String() string {
-	switch {
-	case i == 32:
-		return _StatusMode_name_0
-	case i == 48:
-		return _StatusMode_name_1
-	case i == 64:
-		return _StatusMode_name_2
-	case i == 80:
-		return _StatusMode_name_3
-	case i == 96:
-		return _StatusMode_name_4
-	default:
+	idx := int(i) - 2
+	if i < 2 || idx >= len(_StatusMode_index)-1 {
 		return "StatusMode(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
+	return _StatusMode_name[_StatusMode_index[idx]:_StatusMode_index[idx+1]]
 }
 func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[StatusDataAvailable-4]
-	_ = x[StatusCmdTimeout-6]
-	_ = x[StatusCmdError-8]
-	_ = x[StatusCmdFailed-10]
-	_ = x[StatusCmdTxDone-12]
+	_ = x[StatusDataAvailable-2]
+	_ = x[StatusCmdTimeout-3]
+	_ = x[StatusCmdProcessingError-4]
+	_ = x[StatusCmdExecuteError-5]
+	_ = x[StatusCmdTxDone-6]
 }
 
-const (
-	_CommandStatus_name_0 = "StatusDataAvailable"
-	_CommandStatus_name_1 = "StatusCmdTimeout"
-	_CommandStatus_name_2 = "StatusCmdError"
-	_CommandStatus_name_3 = "StatusCmdFailed"
-	_CommandStatus_name_4 = "StatusCmdTxDone"
-)
+const _CommandStatus_name = "StatusDataAvailableStatusCmdTimeoutStatusCmdProcessingErrorStatusCmdExecuteErrorStatusCmdTxDone"
+
+var _CommandStatus_index = [...]uint8{0, 19, 35, 59, 80, 95}
 
 func (i CommandStatus) String() string {
-	switch {
-	case i == 4:
-		return _CommandStatus_name_0
-	case i == 6:
-		return _CommandStatus_name_1
-	case i == 8:
-		return _CommandStatus_name_2
-	case i == 10:
-		return _CommandStatus_name_3
-	case i == 12:
-		return _CommandStatus_name_4
-	default:
+	idx := int(i) - 2
+	if i < 2 || idx >= len(_CommandStatus_index)-1 {
 		return "CommandStatus(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
+	return _CommandStatus_name[_CommandStatus_index[idx]:_CommandStatus_index[idx+1]]
 }
 func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.

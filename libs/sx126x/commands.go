@@ -907,8 +907,8 @@ func (d *Device) GetStatus() (ModemStatus, error) {
 
 	// Table 13-76: Status Bytes Definition
 	status := rx[1]
-	d.Status.Modem.ChipMode = (status & 0x70) >> 4 // Bits 6:4
-	d.Status.Modem.Command = (status & 0x0E) >> 1  // Bits 3:1
+	d.Status.Modem.ChipMode = StatusMode((status >> 4) & 0x07)   // Bits 6:4
+	d.Status.Modem.Command = CommandStatus((status >> 1) & 0x07) // Birts 3:1
 
 	log.Info("SX126x modem status", "command", d.Status.Modem.Command, "chip", d.Status.Modem.ChipMode)
 	return d.Status.Modem, nil

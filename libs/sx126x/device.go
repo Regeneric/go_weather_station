@@ -405,21 +405,21 @@ const (
 type StatusMode uint8
 
 const (
-	StatusModeStdbyRc   StatusMode = 0x20 // Chip mode: STDBY_RC
-	StatusModeStdbyXosc StatusMode = 0x30 // Chip mode: STDBY_XOSC
-	StatusModeFs        StatusMode = 0x40 // Chip mode: FS
-	StatusModeRx        StatusMode = 0x50 // Chip mode: RX
-	StatusModeTx        StatusMode = 0x60 // Chip mode: TX
+	StatusModeStdbyRc   StatusMode = 0x02 // Chip mode: STDBY_RC
+	StatusModeStdbyXosc StatusMode = 0x03 // Chip mode: STDBY_XOSC
+	StatusModeFs        StatusMode = 0x04 // Chip mode: FS
+	StatusModeRx        StatusMode = 0x05 // Chip mode: RX
+	StatusModeTx        StatusMode = 0x06 // Chip mode: TX
 )
 
 type CommandStatus uint8
 
 const (
-	StatusDataAvailable CommandStatus = 0x04 // Packet received and data can be retrieved
-	StatusCmdTimeout    CommandStatus = 0x06 // SPI command timed out
-	StatusCmdError      CommandStatus = 0x08 // Invalid SPI command
-	StatusCmdFailed     CommandStatus = 0x0A // SPI command failed to execute
-	StatusCmdTxDone     CommandStatus = 0x0C // Packet transmission done
+	StatusDataAvailable      CommandStatus = 0x02 // Packet received and data can be retrieved
+	StatusCmdTimeout         CommandStatus = 0x03 // SPI command timed out
+	StatusCmdProcessingError CommandStatus = 0x04 // Invalid SPI command
+	StatusCmdExecuteError    CommandStatus = 0x05 // SPI command failed to execute
+	StatusCmdTxDone          CommandStatus = 0x06 // Packet transmission done
 )
 
 type DeviceError uint16

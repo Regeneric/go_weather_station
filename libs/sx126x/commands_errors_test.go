@@ -2,8 +2,15 @@ package sx126x
 
 import (
 	"bytes"
+	"io"
+	"log/slog"
 	"testing"
 )
+
+func init() {
+	discardHandler := slog.NewTextHandler(io.Discard, nil)
+	slog.SetDefault(slog.New(discardHandler))
+}
 
 // 13.6.1 GetDeviceErrors
 func TestGetDeviceErrors(t *testing.T) {
