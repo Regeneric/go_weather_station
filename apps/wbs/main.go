@@ -77,10 +77,10 @@ func main() {
 	// = SPI ===
 	// ------------------------------------------------------------------------
 	spiConnections, spiClose, err := spi.Setup(&cfg.SPI)
-	defer spiClose()
-
 	if err != nil {
 		slog.Error("Critical SPI init failure", "error", err)
+	} else {
+		defer spiClose()
 	}
 
 	hkSPI_0, ok := spiConnections["spi0"]
@@ -93,10 +93,10 @@ func main() {
 	// = I2C ===
 	// ------------------------------------------------------------------------
 	i2cConnections, i2cClose, err := i2c.Setup(&cfg.I2C)
-	defer i2cClose()
-
 	if err != nil {
 		slog.Error("Critical I2C init failure", "error", err)
+	} else {
+		defer i2cClose()
 	}
 
 	hkI2C_0, ok := i2cConnections["i2c0"]
@@ -111,10 +111,10 @@ func main() {
 	// = 1-Wire ===
 	// ------------------------------------------------------------------------
 	owConnections, owClose, err := onewire.Setup(&cfg.OneWire)
-	defer owClose()
-
 	if err != nil {
 		slog.Error("Critical 1-W init failure", "error", err)
+	} else {
+		defer owClose()
 	}
 
 	hkOW_0, ok := owConnections["ow0"]
@@ -129,10 +129,10 @@ func main() {
 	// = UART ===
 	// ------------------------------------------------------------------------
 	uartConnections, uartClose, err := uart.Setup(&cfg.UART)
-	defer uartClose()
-
 	if err != nil {
 		slog.Error("Critical UART init failure", "error", err)
+	} else {
+		defer uartClose()
 	}
 
 	hkUART_0, ok := uartConnections["uart0"]
@@ -158,7 +158,8 @@ func main() {
 
 	if err := lora.Setup(hkLoRa_0); err != nil {
 		slog.Error("Critical LoRa mode modem setup failure", "error", err)
+	} else {
+		defer hkLoRa_0.Close()
 	}
-	defer hkLoRa_0.Close()
 	// ------------------------------------------------------------------------
 }
