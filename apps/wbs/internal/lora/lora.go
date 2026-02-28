@@ -97,6 +97,14 @@ func Setup(n *Node) error {
 	log := slog.With("func", "Setup()", "params", "(*Node)", "return", "(error)", "package", "lora")
 	log.Info("LoRa modem setup")
 
+	if n.cfg.Enable == false {
+		return fmt.Errorf("LoRa modem disabled in the config")
+	}
+
+	if n.hw == nil || reflect.ValueOf(n.hw).IsNil() {
+		return fmt.Errorf("LoRa modem state improper")
+	}
+
 	// ************************************************************************
 	// = 14.3 Circuit Configuration for Basic Rx Operation ===
 	// ------------------------------------------------------------------------
