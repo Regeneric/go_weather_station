@@ -75,6 +75,14 @@ type Node struct {
 	cfg *sx126x.Config
 }
 
+type Status uint16
+
+const (
+	SX126XModemError Status = 0x0001
+	LoraModemError   Status = 0x0002
+	LoraSetupError   Status = 0x0003
+)
+
 func New(modem Transceiver, cfg *sx126x.Config) (*Node, error) {
 	log := slog.With("func", "New()", "params", "(Transceiver, *sx126x.Config)", "return", "(*Node, error)", "package", "lora")
 	log.Info("LoRa modem constructor")
@@ -97,12 +105,18 @@ func Setup(n *Node) error {
 	log := slog.With("func", "Setup()", "params", "(*Node)", "return", "(error)", "package", "lora")
 	log.Info("LoRa modem setup")
 
-	if n.cfg.Enable == false {
-		return fmt.Errorf("LoRa modem disabled in the config")
+	if n == nil {
+		return fmt.Errorf("LoRa modem state improper; node is nil")
+	}
+	if n.cfg == nil {
+		return fmt.Errorf("LoRa modem state improper; cfg is nil")
+	}
+	if n.hw == nil || reflect.ValueOf(n.hw).IsNil() {
+		return fmt.Errorf("LoRa modem state improper; hw is nil")
 	}
 
-	if n.hw == nil || reflect.ValueOf(n.hw).IsNil() {
-		return fmt.Errorf("LoRa modem state improper")
+	if n.cfg.Enable == false {
+		return fmt.Errorf("LoRa modem disabled in the config")
 	}
 
 	// ************************************************************************

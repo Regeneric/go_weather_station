@@ -146,18 +146,24 @@ func main() {
 	// ************************************************************************
 	// = SX1262 ===
 	// ------------------------------------------------------------------------
+	// 15:8 - RFU ; 7:0 - status codes
+	var LoraStatusRegister lora.Status
+
 	hkSX1262_0, err := sx126x.New(hkSPI_0, &cfg.SX126X)
 	if err != nil || hkSX1262_0 == nil {
 		slog.Error("Critical SX126x modem failure", "error", err)
+		LoraStatusRegister |= lora.SX126XModemError
 	}
 
 	hkLoRa_0, err := lora.New(hkSX1262_0, &cfg.SX126X)
 	if err != nil {
 		slog.Error("Critical LoRa mode modem failure", "error", err)
+		LoraStatusRegister |= lora.LoraModemError
 	}
 
 	if err := lora.Setup(hkLoRa_0); err != nil {
 		slog.Error("Critical LoRa mode modem setup failure", "error", err)
+		LoraStatusRegister |= lora.LoraSetupError
 	} else {
 		defer hkLoRa_0.Close()
 	}
