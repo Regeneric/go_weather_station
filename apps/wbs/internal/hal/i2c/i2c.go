@@ -10,8 +10,8 @@ import (
 	"periph.io/x/host/v3"
 )
 
-func Init(device string) (i2c.BusCloser, error) {
-	log := slog.With("func", "Init()", "params", "(string)", "return", "(i2c.BusCloser, error)", "package", "i2c")
+func New(device string) (i2c.BusCloser, error) {
+	log := slog.With("func", "New()", "params", "(string)", "return", "(i2c.BusCloser, error)", "package", "i2c")
 	log.Info("Initializing I2C bus", "device", device)
 
 	// Load drivers for RPi
@@ -51,7 +51,7 @@ func Setup(cfg *config.I2C) (map[string]i2c.BusCloser, func(), error) {
 			continue
 		}
 
-		bus, err := Init(dev.Name)
+		bus, err := New(dev.Name)
 		if err != nil {
 			cleanup()
 			return nil, func() {}, fmt.Errorf("Failed to init I2C %s (%s): %w", key, dev.Name, err)

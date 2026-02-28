@@ -12,8 +12,8 @@ import (
 	"periph.io/x/host/v3"
 )
 
-func Init(device string) (uart.PortCloser, error) {
-	log := slog.With("func", "Init()", "params", "(string)", "return", "(uart.PortCloser, error)", "package", "uart")
+func New(device string) (uart.PortCloser, error) {
+	log := slog.With("func", "New()", "params", "(string)", "return", "(uart.PortCloser, error)", "package", "uart")
 	log.Info("Initializing UART bus", "device", device)
 
 	if _, err := host.Init(); err != nil {
@@ -51,7 +51,7 @@ func Setup(cfg *config.UART) (map[string]conn.Conn, func(), error) {
 			continue
 		}
 
-		port, err := Init(dev.Name)
+		port, err := New(dev.Name)
 		if err != nil {
 			cleanup()
 			return nil, func() {}, fmt.Errorf("Failed to init UART %s (%s): %w", key, dev.Name, err)

@@ -18,7 +18,7 @@ type Config struct {
 	I2C     I2C           `yaml:"i2c"`
 	UART    UART          `yaml:"uart"`
 	OneWire OneWire       `yaml:"onewire"`
-	LoRa    sx126x.Config `yaml:"lora"`
+	SX126X  sx126x.Config `yaml:"sx126x"`
 	BME280  BME280        `yaml:"bme280"`
 	DHT     DHT           `yaml:"dht"`
 	DS18B20 DS18B20       `yaml:"ds18b20"`

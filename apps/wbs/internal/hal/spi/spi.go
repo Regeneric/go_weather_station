@@ -11,8 +11,8 @@ import (
 	"periph.io/x/host/v3"
 )
 
-func Init(device string) (spi.PortCloser, error) {
-	log := slog.With("func", "Init()", "params", "(string)", "return", "(spi.PortCloser, error)", "package", "spi")
+func New(device string) (spi.PortCloser, error) {
+	log := slog.With("func", "New()", "params", "(string)", "return", "(spi.PortCloser, error)", "package", "spi")
 	log.Info("Initializing SPI bus", "device", device)
 
 	// Load drivers for RPi
@@ -53,7 +53,7 @@ func Setup(cfg *config.SPI) (map[string]spi.Conn, func(), error) {
 			continue
 		}
 
-		port, err := Init(dev.Name)
+		port, err := New(dev.Name)
 		if err != nil {
 			cleanup()
 			return nil, func() {}, fmt.Errorf("Failed to init SPI %s (%s): %w", key, dev.Name, err)

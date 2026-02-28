@@ -223,7 +223,7 @@ func Setup(modem Transceiver, cfg *sx126x.Config) (*Node, func(), error) {
 	// ---------------------------------
 
 	// = 13.4.5 SetModulationParams ====
-	if err := modem.SetModulationParams(modem.ModulationConfigLoRa(cfg.SpreadingFactor, cfg.CodingRate, physic.Frequency(cfg.Bandwidth)*physic.Hertz, cfg.LDRO)); err != nil {
+	if err := modem.SetModulationParams(modem.ModulationConfigLoRa(cfg.LoRa.SpreadingFactor, cfg.LoRa.CodingRate, physic.Frequency(cfg.Bandwidth)*physic.Hertz, cfg.LoRa.LDRO)); err != nil {
 		cleanup()
 		return nil, func() {}, err
 	}
@@ -231,17 +231,17 @@ func Setup(modem Transceiver, cfg *sx126x.Config) (*Node, func(), error) {
 
 	// = 13.4.6 SetPacketParams ========
 	header := sx126x.HeaderExplicit
-	if cfg.HeaderImplicit == true {
+	if cfg.LoRa.HeaderImplicit == true {
 		header = sx126x.HeaderImplicit
 	}
 
 	crc := sx126x.CrcOff
-	if cfg.CRC == true {
+	if cfg.LoRa.CRC == true {
 		crc = sx126x.CrcOn
 	}
 
 	iq := sx126x.IqStandard
-	if cfg.InvertedIQ == true {
+	if cfg.LoRa.InvertedIQ == true {
 		iq = sx126x.IqInverted
 	}
 
@@ -260,7 +260,7 @@ func Setup(modem Transceiver, cfg *sx126x.Config) (*Node, func(), error) {
 	// ---------------------------------
 
 	// = LoRa SyncWord =================
-	if _, err := modem.WriteRegister(uint16(sx126x.RegLoraSyncWordMsb), []uint8{uint8(cfg.SyncWord >> 8), uint8(cfg.SyncWord)}); err != nil {
+	if _, err := modem.WriteRegister(uint16(sx126x.RegLoraSyncWordMsb), []uint8{uint8(cfg.LoRa.SyncWord >> 8), uint8(cfg.LoRa.SyncWord)}); err != nil {
 		cleanup()
 		return nil, func() {}, err
 	}
@@ -290,10 +290,7 @@ func Setup(modem Transceiver, cfg *sx126x.Config) (*Node, func(), error) {
 
 	// ------------------------------------------------------------------------
 
-	node := &Node{
-		hw: modem,
-	}
-
+	node := &Node{hw: modem}
 	return node, cleanup, nil
 }
 

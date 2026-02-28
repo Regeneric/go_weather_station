@@ -1,6 +1,6 @@
 package sx126x
 
-//go:generate stringer -type=Register
+//go:generate stringer -type=Register,OpCode,SleepConfig,StandbyMode,RegulatorMode,TxRxTimeout,FallbackMode,CalibrationImageFreq,CalibrationParam,PaConfigDeviceSel,RampTime,IrqMask,Dio2Mode,TcxoVoltage,TcxoDelay,PacketType,LoRaBandwidth,LoRaCodingRate,LoRaLowDataRateOptimize,LoRaHeaderType,LoRaCrcMode,LoRaIQMode,FskPulseShape,FskBandwidth,FskPreambleDetector,FskAddressComp,FskPacketLengthMode,FskCrcType,FskWhitening,CadSymbolNum,CadExitMode,StatusMode,CommandStatus,DeviceError,FskSyncWord,RxGain,DriverStatus -output=sx126x_strings.go
 type Register uint16
 
 const (
@@ -42,7 +42,6 @@ const (
 	RegEventMask                Register = 0x0944
 )
 
-//go:generate stringer -type=OpCode
 type OpCode uint8
 
 const (
@@ -90,19 +89,21 @@ const (
 	CmdResetStats            OpCode = 0x00
 	CmdResetErrors           OpCode = 0x07
 	OpCodeNop                       = 0x00
+	OpCodeFalse                     = 0x00
+	OpCodeTrue                      = 0x01
+	OpCodeZero                      = 0x00
+	OpCodeOne                       = 0x01
 )
 
-//go:generate stringer -type=SleepConfig
 type SleepConfig uint8
 
 const (
-	SleepColdStart    = 0x00 // Cold start, configuration is lost (default)
-	SleepWarmStart    = 0x04 // Warm start, configuration is retained
-	SleepColdStartRtc = 0x01 // Cold start and wake on RTC timeout
-	SleepWarmStartRtc = 0x05 // Warm start and wake on RTC timeout
+	SleepColdStart    SleepConfig = 0x00 // Cold start, configuration is lost (default)
+	SleepWarmStart    SleepConfig = 0x04 // Warm start, configuration is retained
+	SleepColdStartRtc SleepConfig = 0x01 // Cold start and wake on RTC timeout
+	SleepWarmStartRtc SleepConfig = 0x05 // Warm start and wake on RTC timeout
 )
 
-//go:generate stringer -type=StandbyMode
 type StandbyMode uint8
 
 const (
@@ -110,7 +111,6 @@ const (
 	StandbyXosc StandbyMode = 0x01 // 32 MHz crystal oscillator
 )
 
-//go:generate stringer -type=RegulatorMode
 type RegulatorMode uint8
 
 const (
@@ -118,7 +118,6 @@ const (
 	RegulatorDcDc RegulatorMode = 0x01 // DC-DC
 )
 
-//go:generate stringer -type=TxRxTimeout
 type TxRxTimeout uint32
 
 const (
@@ -128,7 +127,6 @@ const (
 	RxContinuous TxRxTimeout = 0xFFFFFF // Infinite (Rx continuous mode)
 )
 
-//go:generate stringer -type=FallbackMode
 type FallbackMode uint8
 
 const (
@@ -137,7 +135,6 @@ const (
 	FallbackStdbyRc   FallbackMode = 0x20 // RC oscillator (default)
 )
 
-//go:generate stringer -type=CalibrationImageFreq
 type CalibrationImageFreq uint8
 
 const (
@@ -153,7 +150,6 @@ const (
 	CalImg928 CalibrationImageFreq = 0xE9
 )
 
-//go:generate stringer -type=CalibrationParam
 type CalibrationParam uint8
 
 const (
@@ -172,7 +168,6 @@ const (
 	RfFrequencyNom  = 33554432 // Used for RF frequency calculation
 )
 
-//go:generate stringer -type=PaConfigDeviceSel
 type PaConfigDeviceSel uint8
 
 const (
@@ -188,7 +183,6 @@ const (
 	TxMinPowerSX1262 int8 = -9
 )
 
-//go:generate stringer -type=RampTime
 type RampTime uint8
 
 const (
@@ -202,7 +196,6 @@ const (
 	PaRamp3400u RampTime = 0x07 // Ramp time 3400 us
 )
 
-//go:generate stringer -type=IrqMask
 type IrqMask uint16
 
 const (
@@ -220,15 +213,13 @@ const (
 	IrqNone             IrqMask = 0x0000 // No interupts
 )
 
-//go:generate stringer -type=Dio2Mode
 type Dio2Mode uint8
 
 const (
-	Dio2AsIrq      = 0x00 // IRQ
-	Dio2AsRfSwitch = 0x01 // RF switch control
+	Dio2AsIrq      Dio2Mode = 0x00 // IRQ
+	Dio2AsRfSwitch Dio2Mode = 0x01 // RF switch control
 )
 
-//go:generate stringer -type=TcxoVoltage
 type TcxoVoltage uint8
 
 const (
@@ -242,7 +233,6 @@ const (
 	Dio3Output3_3 TcxoVoltage = 0x07 // 3.3V
 )
 
-//go:generate stringer -type=TcxoDelay
 type TcxoDelay uint32
 
 const (
@@ -251,7 +241,6 @@ const (
 	TcxoDelay10  TcxoDelay = 0x0560 // 10 ms
 )
 
-//go:generate stringer -type=PacketType
 type PacketType uint8
 
 const (
@@ -261,7 +250,6 @@ const (
 	PacketTypeGFSKVariable PacketType = 0x01
 )
 
-//go:generate stringer -type=LoRaBandwidth
 type LoRaBandwidth uint8
 
 const (
@@ -277,7 +265,6 @@ const (
 	LoRaBW_500   LoRaBandwidth = 0x06 // 500.0 kHz
 )
 
-//go:generate stringer -type=LoRaCodingRate
 type LoRaCodingRate uint8
 
 const (
@@ -287,7 +274,6 @@ const (
 	LoRaCR_4_8 LoRaCodingRate = 0x04 // 4/8
 )
 
-//go:generate stringer -type=LoRaLowDataRateOptimize
 type LoRaLowDataRateOptimize uint8
 
 const (
@@ -295,7 +281,6 @@ const (
 	LDRO_ON  LoRaLowDataRateOptimize = 0x01 // LoRa low data rate optimization: enabled
 )
 
-//go:generate stringer -type=:LoRaHeaderType
 type LoRaHeaderType uint8
 
 const (
@@ -303,7 +288,6 @@ const (
 	HeaderImplicit LoRaHeaderType = 0x01
 )
 
-//go:generate stringer -type=LoRaCrcMode
 type LoRaCrcMode uint8
 
 const (
@@ -311,7 +295,6 @@ const (
 	CrcOn  LoRaCrcMode = 0x01
 )
 
-//go:generate stringer -type=LoRaIQMode
 type LoRaIQMode uint8
 
 const (
@@ -319,7 +302,6 @@ const (
 	IqInverted LoRaIQMode = 0x01
 )
 
-//go:generate stringer -type=FskPulseShape
 type FskPulseShape uint8
 
 const (
@@ -330,7 +312,6 @@ const (
 	PulseGaussianBt1   FskPulseShape = 0x0B // Gaussian BT 1.0
 )
 
-//go:generate stringer -type=FskBandwidth
 type FskBandwidth uint8
 
 const (
@@ -357,7 +338,6 @@ const (
 	FskBW_467000 FskBandwidth = 0x09 // 467 kHz
 )
 
-//go:generate stringer -type=FskPreambleDetector
 type FskPreambleDetector uint8
 
 const (
@@ -373,7 +353,6 @@ const (
 	FskBitrateMax uint64 = 300000
 )
 
-//go:generate stringer -type=FskAddressComp
 type FskAddressComp uint8
 
 const (
@@ -382,7 +361,6 @@ const (
 	AddrCompAll  FskAddressComp = 0x02
 )
 
-//go:generate stringer -type=FskPacketLengthMode
 type FskPacketLengthMode uint8
 
 const (
@@ -390,7 +368,6 @@ const (
 	PacketVariable FskPacketLengthMode = 0x01
 )
 
-//go:generate stringer -type=FskCrcType
 type FskCrcType uint8
 
 const (
@@ -401,7 +378,6 @@ const (
 	CRC2Inv FskCrcType = 0x06 // CRC 2 bytes inverted
 )
 
-//go:generate stringer -type=FskWhitening
 type FskWhitening uint8
 
 const (
@@ -409,7 +385,6 @@ const (
 	WhiteningOn  FskWhitening = 0x01
 )
 
-//go:generate stringer -type=CadSymbolNum
 type CadSymbolNum uint8
 
 const (
@@ -420,7 +395,6 @@ const (
 	CadOn16Symb CadSymbolNum = 0x04 // Number of symbols used for CAD: 16
 )
 
-//go:generate stringer -type=CadExitMode
 type CadExitMode uint8
 
 const (
@@ -428,7 +402,6 @@ const (
 	CadExitRx    CadExitMode = 0x01 // Exit to Rx if detected
 )
 
-//go:generate stringer -type=StatusMode
 type StatusMode uint8
 
 const (
@@ -439,7 +412,6 @@ const (
 	StatusModeTx        StatusMode = 0x60 // Chip mode: TX
 )
 
-//go:generate stringer -type=CommandStatus
 type CommandStatus uint8
 
 const (
@@ -450,7 +422,6 @@ const (
 	StatusCmdTxDone     CommandStatus = 0x0C // Packet transmission done
 )
 
-//go:generate stringer -type=DeviceError
 type DeviceError uint16
 
 const (
@@ -487,7 +458,6 @@ const (
 	FskSyncWordLength8 FskSyncWord = 64
 )
 
-//go:generate stringer -type=RxGain
 type RxGain uint8
 
 const (
@@ -498,7 +468,6 @@ const (
 	RxGainRegBoosted     uint8 = 0x96
 )
 
-//go:generate stringer -type=DriverStatus
 type DriverStatus int
 
 const (

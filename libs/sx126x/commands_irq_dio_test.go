@@ -443,7 +443,7 @@ func TestGetIrqStatus(t *testing.T) {
 			commands:    []uint8{uint8(CmdGetBufferStatus), OpCodeNop, OpCodeNop, OpCodeNop},
 			tx:          []uint8{0x12, 0x00, 0x00, 0x00},
 			rx:          []uint8{0x00, 0x01, 0x00, 0x08},
-			expectError: false,
+			expectError: true,
 		},
 		{
 			name:        "HeaderValid_LoRa",
@@ -575,7 +575,7 @@ func TestGetIrqStatus(t *testing.T) {
 			commands:    []uint8{uint8(CmdGetBufferStatus), OpCodeNop, OpCodeNop, OpCodeNop},
 			tx:          []uint8{0x12, 0x00, 0x00, 0x00},
 			rx:          []uint8{0x00, 0x01, 0x00, 0x10},
-			expectError: false,
+			expectError: true,
 		},
 		{
 			name:        "HeaderErr_FSK",
@@ -585,7 +585,7 @@ func TestGetIrqStatus(t *testing.T) {
 			commands:    []uint8{uint8(CmdGetBufferStatus), OpCodeNop, OpCodeNop, OpCodeNop},
 			tx:          []uint8{0x12, 0x00, 0x00, 0x00},
 			rx:          []uint8{0x00, 0x01, 0x00, 0x20},
-			expectError: false,
+			expectError: true,
 		},
 		{
 			name:        "CrcErr_FSK",
@@ -605,7 +605,7 @@ func TestGetIrqStatus(t *testing.T) {
 			commands:    []uint8{uint8(CmdGetBufferStatus), OpCodeNop, OpCodeNop, OpCodeNop},
 			tx:          []uint8{0x12, 0x00, 0x00, 0x00},
 			rx:          []uint8{0x00, 0x01, 0x00, 0x80},
-			expectError: false,
+			expectError: true,
 		},
 		{
 			name:        "CadDetected_FSK",
@@ -615,7 +615,7 @@ func TestGetIrqStatus(t *testing.T) {
 			commands:    []uint8{uint8(CmdGetBufferStatus), OpCodeNop, OpCodeNop, OpCodeNop},
 			tx:          []uint8{0x12, 0x00, 0x00, 0x00},
 			rx:          []uint8{0x00, 0x01, 0x01, 0x00},
-			expectError: false,
+			expectError: true,
 		},
 		{
 			name:        "Timeout_FSK",
@@ -685,20 +685,6 @@ func TestGetIrqStatus(t *testing.T) {
 
 			if !bytes.Equal(spi.TxData, tc.tx) {
 				t.Errorf("FAIL: %s\nWrong bytes send to SPI!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.tx, spi.TxData)
-			}
-
-			if tc.modem == "lora" {
-				fskBits := IrqSyncWordValid
-				if sxStatus&uint16(fskBits) != 0 {
-					return // It's not possible for this bit to be set in LoRa mode
-				}
-			}
-
-			if tc.modem == "fsk" {
-				loraBits := IrqHeaderValid | IrqHeaderErr | IrqCadDone | IrqCadDetected
-				if sxStatus&uint16(loraBits) != 0 {
-					return // It's not possible for this bit to be set in FSK mode
-				}
 			}
 
 			if !bytes.Equal(spi.RxData, tc.rx) {

@@ -10,17 +10,10 @@ type Config struct {
 	Modem           string       `yaml:"modem" env:"SX126X_MODEM" env-default:"lora"`
 	Type            string       `yaml:"type" env:"SX126X_TYPE" env-default:"1262"`
 	Bandwidth       uint64       `yaml:"bandwidth" env:"SX126X_BANDWIDTH" env-default:"125000"`
-	SpreadingFactor uint8        `yaml:"spreading_factor" env:"SX126X_SF" env-default:"7"`
-	CodingRate      uint8        `yaml:"coding_rate" env:"SX126X_CR" env-default:"5"`
-	LDRO            bool         `yaml:"ldro" env:"SX126X_LDRO" env-default:"false"`
 	DC_DC           bool         `yaml:"dc_dc" env:"SX126X_DC_DC" env-default:"false"`
-	HeaderImplicit  bool         `yaml:"header_implicit" env:"SX126X_HEADER_IMPLICIT" env-default:"false"`
 	Frequency       uint64       `yaml:"frequency" env:"SX126X_FREQUENCY" env-default:"433000000"`
 	PreambleLength  uint16       `yaml:"preamble_length" env:"SX126X_PREAMBLE_LEN" env-default:"12"`
 	PayloadLength   uint8        `yaml:"payload_length" env:"SX126X_PAYLOAD_LEN" env-default:"32"`
-	CRC             bool         `yaml:"crc" env:"SX126X_CRC" env-default:"true"`
-	InvertedIQ      bool         `yaml:"inverted_iq" env:"SX126X_IQ_INVERTED" env-default:"false"`
-	SyncWord        uint16       `yaml:"sync_word" env:"SX126X_SYNC_WORD" env-default:"5156"` // Aka 0x1424
 	TransmitPower   int8         `yaml:"tx_power" env:"SX126X_TX_POWER" env-default:"0"`
 	StandbyMode     string       `yaml:"standby_mode" env:"SX126X_STANDBY_MODE" env-default:"rc"`
 	SleepMode       string       `yaml:"sleep_mode" env:"SX126X_SLEEP_MODE" env-default:"cold_start"`
@@ -34,10 +27,21 @@ type Config struct {
 	TransmitTimeout uint32       `yaml:"tx_timeout" env:"SX126X_TX_TIMEOUT" env-default:"0"`
 	TcxoVoltage     float32      `yaml:"tcxo_voltage" env:"SX126X_TCXO_VOLTAGE" env-default:"0"`
 	TcxoTimeout     uint32       `yaml:"tcxo_timeout" env:"SX126X_TCXO_TIMEOUT" env-default:"0"`
+	LoRa            *LoRa        `yaml:"lora"`
 	FSK             *FSK         `yaml:"fsk"`
 	Pins            *Pins        `yaml:"pins"`
-	CAD             *CAD         `yaml:"cad"`
 	Workarounds     *Workarounds `yaml:"workarounds"`
+}
+
+type LoRa struct {
+	SpreadingFactor uint8  `yaml:"spreading_factor" env:"SX126X_LORA_SF" env-default:"7"`
+	CodingRate      uint8  `yaml:"coding_rate" env:"SX126X_LORA_CR" env-default:"5"`
+	LDRO            bool   `yaml:"ldro" env:"SX126X_LORA_LDRO" env-default:"false"`
+	HeaderImplicit  bool   `yaml:"header_implicit" env:"SX126X_HEADER_LORA_IMPLICIT" env-default:"false"`
+	CRC             bool   `yaml:"crc" env:"SX126X_LORA_CRC" env-default:"true"`
+	InvertedIQ      bool   `yaml:"inverted_iq" env:"SX126X_LORA_IQ_INVERTED" env-default:"false"`
+	SyncWord        uint16 `yaml:"sync_word" env:"SX126X_LORA_SYNC_WORD" env-default:"5156"` // Aka 0x1424
+	CAD             *CAD   `yaml:"cad"`
 }
 
 type FSK struct {

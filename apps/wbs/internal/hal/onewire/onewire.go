@@ -10,8 +10,8 @@ import (
 	"periph.io/x/host/v3"
 )
 
-func Init(device string) (ponewire.BusCloser, error) {
-	log := slog.With("func", "Init()", "params", "(string)", "return", "(onewire.BusCloser, error)", "package", "onewire")
+func New(device string) (ponewire.BusCloser, error) {
+	log := slog.With("func", "New()", "params", "(string)", "return", "(onewire.BusCloser, error)", "package", "onewire")
 	log.Info("Initializing 1-Wire bus", "device", device)
 
 	// Load drivers for RPi
@@ -51,7 +51,7 @@ func Setup(cfg *config.OneWire) (map[string]ponewire.BusCloser, func(), error) {
 			continue
 		}
 
-		bus, err := Init(dev.Name)
+		bus, err := New(dev.Name)
 		if err != nil {
 			cleanup()
 			return nil, func() {}, fmt.Errorf("Failed to init 1-W %s (%s): %w", key, dev.Name, err)

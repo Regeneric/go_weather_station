@@ -61,7 +61,7 @@ func (d *Device) SetTx(timeout uint32) error {
 	}
 
 	if err := d.SPI.Tx(commands, nil); err != nil {
-		return fmt.Errorf("Could not set device in transmit mode %v: %w", CmdSetTx, err)
+		return fmt.Errorf("Could not set device in transmit mode %v with timeout %v: %w", CmdSetTx, timeout, err)
 	}
 
 	log.Info("SX126x modem set in transit mode")
@@ -81,7 +81,7 @@ func (d *Device) SetRx(timeout uint32) error {
 	}
 
 	if err := d.SPI.Tx(commands, nil); err != nil {
-		return fmt.Errorf("Could not set device in receiver mode %v: %w", CmdSetRx, err)
+		return fmt.Errorf("Could not set device in receiver mode %v with timeout %v: %w", CmdSetRx, timeout, err)
 	}
 
 	log.Info("SX126x modem set in receiver mode")
@@ -93,12 +93,12 @@ func (d *Device) StopTimerOnPreamble(enable bool) error {
 	log := slog.With("func", "Device.StopTimerOnPreamble()", "params", "(bool)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Select if the timer is stopped upon preamble detection or Sync Word / header detection", "enable", enable)
 
-	var param uint8 = 0x00
+	param := OpCodeFalse
 	if enable {
-		param = 0x01
+		param = OpCodeTrue
 	}
 
-	commands := []uint8{uint8(CmdStopOnPreamble), param}
+	commands := []uint8{uint8(CmdStopOnPreamble), uint8(param)}
 	if err := d.SPI.Tx(commands, nil); err != nil {
 		return fmt.Errorf("Could not set timer detection param %v: %w", CmdStopOnPreamble, err)
 	}
@@ -223,7 +223,7 @@ func (d *Device) SetPaConfig(opts ...OptionsPa) error {
 	log := slog.With("func", "Device.SetPaConfig()", "params", "(...OptionsPa)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Differentiate the SX1261 from the SX1262")
 
-	cfg := &ConfigPa{TxPower: d.Config.TransmitPower, PaLut: 0x01} // PaLut should be always 0x01 for SX1261 and 1262
+	cfg := &ConfigPa{TxPower: d.Config.TransmitPower, PaLut: 0x01} // Table 13-21: PA Operating Modes with Optimal Setting - PaLut should be always 0x01 for SX1261 and 1262
 
 	switch d.Config.Type {
 	case "1261":
@@ -258,11 +258,12 @@ func (d *Device) SetPaConfig(opts ...OptionsPa) error {
 
 	manualMode := len(opts) > 0
 
-	// Default values for given TX power
+	// 13.1.14.1 PA Optimal Settings - Default values for given TX power
 	if !manualMode {
 		switch d.Config.Type {
 		case "1261":
 			switch {
+			// Table 13-21: PA Operating Modes with Optimal Settings
 			case cfg.TxPower == 15:
 				cfg.PaDutyCycle = 0x06
 				cfg.HpMax = 0x00
@@ -278,6 +279,7 @@ func (d *Device) SetPaConfig(opts ...OptionsPa) error {
 			}
 		case "1262":
 			switch {
+			// Table 13-21: PA Operating Modes with Optimal Settings
 			case cfg.TxPower == 22:
 				cfg.PaDutyCycle = 0x04
 				cfg.HpMax = 0x07
@@ -371,7 +373,7 @@ func (d *Device) SetDioIrqParams(irqMask IrqMask, dioIRQ ...IrqMask) error {
 		for i, v := range dioIRQ {
 			idx := 2 + (i * 2)
 			irqs[idx] = uint8(v >> 8)
-			irqs[idx+1] = uint8(v & 0xFF)
+			irqs[idx+1] = uint8(v)
 		}
 	} else {
 		return fmt.Errorf("Could not set IRQ na DIO masks; invalid number of IRQ params: %v", len(dioIRQ))
@@ -402,6 +404,22 @@ func (d *Device) GetIrqStatus() (uint16, error) {
 		return 0, fmt.Errorf("Could not get IRQ register status: %w", err)
 	}
 	status := uint16(rx[2])<<8 | uint16(rx[3])
+
+	if d.Config.Modem == "lora" {
+		fskBits := IrqSyncWordValid
+		if status&uint16(fskBits) != 0 {
+			// It's not possible for this bit to be set in LoRa mode
+			return 0, fmt.Errorf("Modem is LoRa, but FSK-specific bit is set: [%#x]", status)
+		}
+	}
+
+	if d.Config.Modem == "fsk" {
+		loraBits := IrqHeaderValid | IrqHeaderErr | IrqCadDone | IrqCadDetected
+		if status&uint16(loraBits) != 0 {
+			// It's not possible for these bits to be set in FSK mode
+			return 0, fmt.Errorf("Modem is FSK, but LoRa-specific bits are set: [%#x]", status)
+		}
+	}
 
 	log.Info("SX126x modem IRQ register value", "status", status)
 	return status, nil
@@ -449,12 +467,12 @@ func (d *Device) SetDIO2AsRfSwitchCtrl(enable bool) error {
 	log := slog.With("func", "Device.SetDIO2AsRfSwitchCtrl()", "params", "(bool)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Configure DIO2 so that it can be used to control an external RF switch")
 
-	var extSw uint8 = 0x00
+	extSw := Dio2AsIrq
 	if enable {
-		extSw = 0x01
+		extSw = Dio2AsRfSwitch
 	}
 
-	commands := []uint8{uint8(CmdSetDio2AsRfSwitchCtrl), extSw}
+	commands := []uint8{uint8(CmdSetDio2AsRfSwitchCtrl), uint8(extSw)}
 	if err := d.SPI.Tx(commands, nil); err != nil {
 		return fmt.Errorf("Could not set DIO2 as external RF switch: %w", err)
 	}
@@ -571,23 +589,23 @@ func (d *Device) SetModulationParams(opts ...OptionsModulation) error {
 			log.Warn("Setting bandwidth to 125 kHz")
 		}
 
-		sf := d.Config.SpreadingFactor
+		sf := d.Config.LoRa.SpreadingFactor
 		if sf < 5 || sf > 12 {
 			sf = 7
-			log.Warn("Unsupported Spreading Factor", "spreadingFactor", d.Config.SpreadingFactor)
+			log.Warn("Unsupported Spreading Factor", "spreadingFactor", d.Config.LoRa.SpreadingFactor)
 			log.Warn("Setting Spreading Factor to 7")
 		}
 
-		cr, crOk := loraCodingRate(d.Config.CodingRate)
+		cr, crOk := loraCodingRate(d.Config.LoRa.CodingRate)
 		if !crOk {
 			cr = uint8(LoRaCR_4_5)
-			log.Warn("Unsupported Coding Rate", "codingRate", d.Config.CodingRate)
+			log.Warn("Unsupported Coding Rate", "codingRate", d.Config.LoRa.CodingRate)
 			log.Warn("Setting Coding Rate to 4/5")
 
 		}
 
 		ld := uint8(LDRO_OFF)
-		if d.Config.LDRO {
+		if d.Config.LoRa.LDRO {
 			ld = uint8(LDRO_ON)
 		}
 
@@ -680,17 +698,17 @@ func (d *Device) SetPacketParams(opts ...OptionsPacket) error {
 	switch d.Config.Modem {
 	case "lora":
 		headerType := uint8(HeaderExplicit)
-		if d.Config.HeaderImplicit {
+		if d.Config.LoRa.HeaderImplicit {
 			headerType = uint8(HeaderImplicit)
 		}
 
 		crc := uint8(CrcOff)
-		if d.Config.CRC {
+		if d.Config.LoRa.CRC {
 			crc = uint8(CrcOn)
 		}
 
 		iq := uint8(IqStandard)
-		if d.Config.InvertedIQ {
+		if d.Config.LoRa.InvertedIQ {
 			iq = uint8(IqInverted)
 		}
 
@@ -802,26 +820,26 @@ func (d *Device) SetCadParams(opts ...OptionsCAD) error {
 	log := slog.With("func", "Device.SetCadParams()", "params", "(...OptionsCAD)", "return", "(error)", "lib", "sx126x")
 	log.Debug("Define number of symbols on which CAD operates")
 
-	sm, smOk := cadSymbolNumber(d.Config.CAD.SymbolNumber)
+	sm, smOk := cadSymbolNumber(d.Config.LoRa.CAD.SymbolNumber)
 	if !smOk {
 		sm = CadOn2Symb
-		log.Warn("Unsupported Symbol Number:", "symbolNumber", d.Config.CAD.SymbolNumber)
+		log.Warn("Unsupported Symbol Number:", "symbolNumber", d.Config.LoRa.CAD.SymbolNumber)
 		log.Warn("Setting Symbol Number to 2:")
 	}
 
-	em, emOk := cadExitMode(d.Config.CAD.ExitMode)
+	em, emOk := cadExitMode(d.Config.LoRa.CAD.ExitMode)
 	if !emOk {
 		em = CadExitRx
-		log.Warn("Unsupported Exit Mode:", "exitMode", d.Config.CAD.ExitMode)
+		log.Warn("Unsupported Exit Mode:", "exitMode", d.Config.LoRa.CAD.ExitMode)
 		log.Warn("Setting Exit Mode to RX:")
 	}
 
 	cfg := &ConfigCAD{
 		SymbolNumber:     uint8(sm),
-		DetectionPeak:    d.Config.CAD.DetectionPeak,
-		DetectionMinimum: d.Config.CAD.DetectionMinimum,
+		DetectionPeak:    d.Config.LoRa.CAD.DetectionPeak,
+		DetectionMinimum: d.Config.LoRa.CAD.DetectionMinimum,
 		ExitMode:         uint8(em),
-		Timeout:          d.Config.CAD.Timeout,
+		Timeout:          d.Config.LoRa.CAD.Timeout,
 	}
 
 	for _, opt := range opts {
@@ -887,6 +905,7 @@ func (d *Device) GetStatus() (ModemStatus, error) {
 		return ModemStatus{}, fmt.Errorf("Could not get modem status: %w", err)
 	}
 
+	// Table 13-76: Status Bytes Definition
 	status := rx[1]
 	d.Status.Modem.ChipMode = (status & 0x70) >> 4 // Bits 6:4
 	d.Status.Modem.Command = (status & 0x0E) >> 1  // Bits 3:1

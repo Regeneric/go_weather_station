@@ -146,12 +146,12 @@ func main() {
 	// ************************************************************************
 	// = SX1262 ===
 	// ------------------------------------------------------------------------
-	hkSX1262_0, err := sx126x.New(hkSPI_0, &cfg.LoRa)
+	hkSX1262_0, err := sx126x.New(hkSPI_0, &cfg.SX126X)
 	if err != nil || hkSX1262_0 == nil {
 		slog.Error("Critical SX126x modem failure", "error", err)
 	}
 
-	hkLoRa_0, hkLoRa_0_Close, err := lora.Setup(hkSX1262_0, &cfg.LoRa)
+	hkLoRa_0, hkLoRa_0_Close, err := lora.Setup(hkSX1262_0, &cfg.SX126X)
 	defer hkLoRa_0_Close()
 
 	if err != nil {
@@ -159,14 +159,6 @@ func main() {
 	}
 
 	_ = hkLoRa_0 // Temporary
-
-	// hkSX1262_1, err := sx126x.New(hkSPI_1, &cfg.LoRa)
-	// if err != nil {
-	// 	slog.Error("Critical SX126x modem failure", "error", err)
-	// }
-
-	// hkFSK_0, hkFSK_0_Close, err := fsk.Setup(hkSX1262_1, &cfg.LoRa)
-	// defer hkFSK_0_Close()
 	// ------------------------------------------------------------------------
 
 }
