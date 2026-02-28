@@ -296,7 +296,7 @@ func (n *Node) Close() error {
 	}
 
 	if err := n.hw.Close(mode); err != nil {
-		return fmt.Errorf("Critical failure during SX126X modem shutdown", "error", err)
+		return fmt.Errorf("Critical failure during SX126X modem shutdown: %w", err)
 	}
 
 	return nil
