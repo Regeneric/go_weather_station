@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
-	"sx126x"
 	"time"
+
+	"github.com/Regeneric/iot-drivers/libs/sx126x"
 
 	"periph.io/x/conn/v3/physic"
 )

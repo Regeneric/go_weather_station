@@ -8,8 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"sgp30"
-	"sx126x"
 	"syscall"
 	"wbs/internal/config"
 	"wbs/internal/hal/i2c"
@@ -17,6 +15,9 @@ import (
 	"wbs/internal/hal/spi"
 	"wbs/internal/hal/uart"
 	"wbs/internal/lora"
+
+	"github.com/Regeneric/iot-drivers/libs/sgp30"
+	"github.com/Regeneric/iot-drivers/libs/sx126x"
 
 	"periph.io/x/host/v3"
 )

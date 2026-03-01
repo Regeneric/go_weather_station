@@ -3,9 +3,11 @@ package config
 import (
 	"fmt"
 	"os"
-	"sgp30"
-	"sx126x"
 	"time"
+
+	"github.com/Regeneric/iot-drivers/libs/sx126x"
+
+	"github.com/Regeneric/iot-drivers/libs/sgp30"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"periph.io/x/conn/v3/spi"
@@ -24,7 +26,7 @@ type Config struct {
 	DHT     DHT           `yaml:"dht"`
 	DS18B20 DS18B20       `yaml:"ds18b20"`
 	PMS5003 PMS5003       `yaml:"pms5003"`
-	SGP30   sgp30.Config  `yaml:"sgp30"`
+	SGP30   sgp30.Group   `yaml:"sgp30"`
 }
 
 // ************************************************************************
