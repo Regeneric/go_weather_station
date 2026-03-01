@@ -2,7 +2,6 @@ package sx126x
 
 import (
 	"periph.io/x/conn/v3/gpio"
-	"periph.io/x/conn/v3/spi"
 )
 
 type Config struct {
@@ -125,8 +124,12 @@ type Queue struct {
 	Tx chan []uint8
 }
 
+type Bus interface {
+	Tx(w, r []uint8) error
+}
+
 type Device struct {
-	SPI    spi.Conn
+	SPI    Bus
 	Config *Config
 	Status Status
 	Queue  Queue

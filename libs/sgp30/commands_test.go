@@ -187,7 +187,7 @@ func TestIaqInit(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.IaqInit()
@@ -314,7 +314,7 @@ func TestMeasureIaq(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.MeasureIaq(tc.rx)
@@ -443,7 +443,7 @@ func TestGetIaqBaseline(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.GetIaqBaseline(tc.rx)
@@ -561,7 +561,7 @@ func TestSetIaqBaseline(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.SetIaqBaseline(tc.tx)
@@ -660,7 +660,7 @@ func TestSetAbsoluteHumidity(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.SetAbsoluteHumidity(tc.tx)
@@ -750,7 +750,7 @@ func TestMeasureTest(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.MeasureTest(tc.rx)
@@ -844,7 +844,7 @@ func TestGetFeatureSet(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.GetFeatureSet(tc.rx)
@@ -973,7 +973,7 @@ func TestMeasureRaw(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.MeasureRaw(tc.rx)
@@ -1086,7 +1086,7 @@ func TestGetTvocInceptiveBaseline(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.GetTvocInceptiveBaseline(tc.rx)
@@ -1180,7 +1180,7 @@ func TestSetTvocBaseline(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.SetTvocBaseline(tc.tx)
@@ -1231,7 +1231,7 @@ func TestSoftReset(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.SoftReset()
@@ -1332,7 +1332,7 @@ func TestGetSerialId(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
-			cfg := Config{Address: 0x58}
+			cfg := cfg{Address: 0x58}
 			dev := Device{I2C: &i2c, Config: &cfg}
 
 			err := dev.GetSerialId(tc.rx)

@@ -24,6 +24,7 @@ type Config struct {
 	DHT     DHT           `yaml:"dht"`
 	DS18B20 DS18B20       `yaml:"ds18b20"`
 	PMS5003 PMS5003       `yaml:"pms5003"`
+	SGP30   sgp30.Config  `yaml:"sgp30"`
 }
 
 // ************************************************************************
@@ -122,7 +123,7 @@ type onewireDevice struct {
 // ------------------------------------------------------------------------
 
 // ************************************************************************
-// = BME280 ===
+// = BME280 === TO BE REMOVED FROM HERE
 // ------------------------------------------------------------------------
 type BME280 struct {
 	Enable  bool                    `yaml:"enable" env:"BME280_ENABLE" env-default:"false"`
@@ -140,7 +141,7 @@ type bme280Device struct {
 // ------------------------------------------------------------------------
 
 // ************************************************************************
-// = DHT ===
+// = DHT === TO BE REMOVED FROM HERE
 // ------------------------------------------------------------------------
 type DHT struct {
 	Enable  bool                 `yaml:"enable" env:"DHT_ENABLE" env-default:"false"`
@@ -158,7 +159,7 @@ type dhtDevice struct {
 // ------------------------------------------------------------------------
 
 // ************************************************************************
-// = DS18B20 ===
+// = DS18B20 === TO BE REMOVED FROM HERE
 // ------------------------------------------------------------------------
 type DS18B20 struct {
 	Enable  bool                     `yaml:"enable" env:"DS18B20_ENABLE" env-default:"false"`
@@ -174,7 +175,7 @@ type ds18b20Device struct {
 // ------------------------------------------------------------------------
 
 // ************************************************************************
-// = PMS5003 ===
+// = PMS5003 === TO BE REMOVED FROM HERE
 // ------------------------------------------------------------------------
 type PMS5003 struct {
 	Enable  bool                     `yaml:"enable" env:"PMS5003_ENABLE" env-default:"false"`
@@ -190,28 +191,6 @@ type pms5003Device struct {
 	NormalizeData        bool   `yaml:"normalize_data" env:"PMS5003_NORMALIZE_DATA" env-default:"false"`
 	Location             string `yaml:"location" env:"PMS5003_LOCATION"`
 }
-
-// ------------------------------------------------------------------------
-
-// ************************************************************************
-// = SGP30 ===
-// ------------------------------------------------------------------------
-type SGP30 struct {
-	Enable  bool                    `yaml:"enable" env:"SGP30_ENABLE" env-default:"false"`
-	Devices map[string]sgp30.Config `yaml:"device"`
-}
-
-// type sgp30Device struct {
-// 	Enable               bool   `yaml:"enable" env:"SGP30_ENABLE" env-default:"false"`
-// 	Name                 string `yaml:"name" env:"SGP30_NAME"`
-// 	HumidityCompensation bool   `yaml:"humidity_compensation" env:"SGP30_HUMIDITY_COMPENSATION" env-default:"false"`
-// 	UseDHT               bool   `yaml:"use_dht" env:"SGP30_USE_DHT" env-default:"false"`
-// 	UseBME               bool   `yaml:"use_bme" env:"SGP30_USE_BME" env-default:"false"`
-// 	NormalizeData        bool   `yaml:"normalize_data" env:"SGP30_NORMALIZE_DATA" env-default:"false"`
-// 	Location             string `yaml:"location" env:"SGP30_LOCATION"`
-// }
-
-// ------------------------------------------------------------------------
 
 func LoadConfig(path string) (*Config, error) {
 	cfg := &Config{}

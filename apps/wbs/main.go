@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
+	"sgp30"
 	"sx126x"
 	"syscall"
 	"wbs/internal/config"
@@ -67,8 +70,8 @@ func main() {
 		logger.Info("Configuration loaded", "sourceFile", *configPath)
 	}
 
-	// cfgJSON, _ := json.MarshalIndent(cfg, "", "  ")
-	// fmt.Printf("Loaded Config:\n%s\n", string(cfgJSON))
+	cfgJSON, _ := json.MarshalIndent(cfg, "", "  ")
+	fmt.Printf("Loaded Config:\n%s\n", string(cfgJSON))
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
@@ -165,5 +168,34 @@ func main() {
 	} else {
 		defer hkLoRa_0.Close()
 	}
+	// ------------------------------------------------------------------------
+
+	// ************************************************************************
+	// = SGP30 ===  TODO: automatic reconnects after failure
+	// ------------------------------------------------------------------------
+	sgp30Buses := make(map[string]sgp30.Bus)
+	for k, v := range i2cConnections {
+		sgp30Buses[k] = v
+	}
+
+	sgp30Sensors, sgp30Close, err := sgp30.Setup(sgp30Buses, &cfg.SGP30)
+	if err != nil {
+		slog.Error("Critical SGP30 init failure", "error", err)
+	} else {
+		defer sgp30Close()
+	}
+
+	hkSGP30_0, ok := sgp30Sensors["sgp30_0"] // It's NOT cfg.SGP30.Name
+	if !ok {
+		slog.Error("Missing SGP30 sensor", "name", "sgp30_0")
+	}
+
+	hkSGP30_1, ok := sgp30Sensors["sgp30_1"] // It's NOT cfg.SGP30.Name
+	if !ok {
+		slog.Error("Missing SGP30 sensor", "name", "sgp30_1")
+	}
+
+	_ = hkSGP30_0
+	_ = hkSGP30_1
 	// ------------------------------------------------------------------------
 }

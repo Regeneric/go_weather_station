@@ -9,13 +9,6 @@ func (d *Device) IaqInit() error {
 	log := slog.With("func", "Device.IaqInit()", "params", "(-)", "return", "(error)", "lib", "sgp30")
 	log.Debug("SGP30 sensor init")
 
-	// if d.Config == nil {
-	// 	return fmt.Errorf("SGP30 sensor state improper; Config is nil")
-	// }
-	// if d.I2C == nil || reflect.ValueOf(d.I2C).IsNil() {
-	// 	return fmt.Errorf("SGP30 sensor state improper; I2C is nil")
-	// }
-
 	command := []uint8{uint8(CmdIaqInitMSB), uint8(CmdIaqInitLSB)}
 	if err := d.I2C.Tx(uint16(d.Config.Address), command, nil); err != nil {
 		return fmt.Errorf("Could not send init command to SGP30 sensor: %w", err)
