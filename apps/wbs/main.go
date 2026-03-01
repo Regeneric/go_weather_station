@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -69,12 +67,12 @@ func main() {
 		logger.Info("Configuration loaded", "sourceFile", *configPath)
 	}
 
-	cfgJSON, _ := json.MarshalIndent(cfg, "", "  ")
-	fmt.Printf("Loaded Config:\n%s\n", string(cfgJSON))
+	// cfgJSON, _ := json.MarshalIndent(cfg, "", "  ")
+	// fmt.Printf("Loaded Config:\n%s\n", string(cfgJSON))
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
-	// = SPI ===
+	// = SPI ===  TODO: automatic reconnects after failure
 	// ------------------------------------------------------------------------
 	spiConnections, spiClose, err := spi.Setup(&cfg.SPI)
 	if err != nil {
@@ -90,7 +88,7 @@ func main() {
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
-	// = I2C ===
+	// = I2C ===  TODO: automatic reconnects after failure
 	// ------------------------------------------------------------------------
 	i2cConnections, i2cClose, err := i2c.Setup(&cfg.I2C)
 	if err != nil {
@@ -108,7 +106,7 @@ func main() {
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
-	// = 1-Wire ===
+	// = 1-Wire ===  TODO: automatic reconnects after failure
 	// ------------------------------------------------------------------------
 	owConnections, owClose, err := onewire.Setup(&cfg.OneWire)
 	if err != nil {
@@ -126,7 +124,7 @@ func main() {
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
-	// = UART ===
+	// = UART ===  TODO: automatic reconnects after failure
 	// ------------------------------------------------------------------------
 	uartConnections, uartClose, err := uart.Setup(&cfg.UART)
 	if err != nil {
@@ -144,7 +142,7 @@ func main() {
 	// ------------------------------------------------------------------------
 
 	// ************************************************************************
-	// = SX1262 ===
+	// = SX1262 ===  TODO: automatic reconnects after failure
 	// ------------------------------------------------------------------------
 	// 15:8 - RFU ; 7:0 - status codes
 	var LoraStatusRegister lora.Status

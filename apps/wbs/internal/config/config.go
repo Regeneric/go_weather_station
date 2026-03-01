@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"sgp30"
 	"sx126x"
 	"time"
 
@@ -196,19 +197,19 @@ type pms5003Device struct {
 // = SGP30 ===
 // ------------------------------------------------------------------------
 type SGP30 struct {
-	Enable  bool                   `yaml:"enable" env:"SGP30_ENABLE" env-default:"false"`
-	Devices map[string]sgp30Device `yaml:"device"`
+	Enable  bool                    `yaml:"enable" env:"SGP30_ENABLE" env-default:"false"`
+	Devices map[string]sgp30.Config `yaml:"device"`
 }
 
-type sgp30Device struct {
-	Enable               bool   `yaml:"enable" env:"SGP30_ENABLE" env-default:"false"`
-	Name                 string `yaml:"name" env:"SGP30_NAME"`
-	HumidityCompensation bool   `yaml:"humidity_compensation" env:"SGP30_HUMIDITY_COMPENSATION" env-default:"false"`
-	UseDHT               bool   `yaml:"use_dht" env:"SGP30_USE_DHT" env-default:"false"`
-	UseBME               bool   `yaml:"use_bme" env:"SGP30_USE_BME" env-default:"false"`
-	NormalizeData        bool   `yaml:"normalize_data" env:"SGP30_NORMALIZE_DATA" env-default:"false"`
-	Location             string `yaml:"location" env:"SGP30_LOCATION"`
-}
+// type sgp30Device struct {
+// 	Enable               bool   `yaml:"enable" env:"SGP30_ENABLE" env-default:"false"`
+// 	Name                 string `yaml:"name" env:"SGP30_NAME"`
+// 	HumidityCompensation bool   `yaml:"humidity_compensation" env:"SGP30_HUMIDITY_COMPENSATION" env-default:"false"`
+// 	UseDHT               bool   `yaml:"use_dht" env:"SGP30_USE_DHT" env-default:"false"`
+// 	UseBME               bool   `yaml:"use_bme" env:"SGP30_USE_BME" env-default:"false"`
+// 	NormalizeData        bool   `yaml:"normalize_data" env:"SGP30_NORMALIZE_DATA" env-default:"false"`
+// 	Location             string `yaml:"location" env:"SGP30_LOCATION"`
+// }
 
 // ------------------------------------------------------------------------
 

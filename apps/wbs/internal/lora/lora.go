@@ -87,12 +87,15 @@ func New(modem Transceiver, cfg *sx126x.Config) (*Node, error) {
 	log := slog.With("func", "New()", "params", "(Transceiver, *sx126x.Config)", "return", "(*Node, error)", "package", "lora")
 	log.Info("LoRa modem constructor")
 
-	if cfg.Enable == false {
-		return nil, fmt.Errorf("LoRa modem disabled in the config")
+	if cfg == nil {
+		return nil, fmt.Errorf("LoRa modem state improper; cfg is nil")
+	}
+	if modem == nil || reflect.ValueOf(modem).IsNil() {
+		return nil, fmt.Errorf("LoRa modem state improper; modem is nil")
 	}
 
-	if modem == nil || reflect.ValueOf(modem).IsNil() {
-		return nil, fmt.Errorf("LoRa modem state improper")
+	if cfg.Enable == false {
+		return nil, fmt.Errorf("LoRa modem disabled in the config")
 	}
 
 	return &Node{
@@ -292,7 +295,7 @@ func Setup(n *Node) error {
 }
 
 func (n *Node) Close() error {
-	log := slog.With("func", "Close()", "params", "(*Node)", "return", "(error)", "package", "lora")
+	log := slog.With("func", "Close()", "params", "(-)", "return", "(error)", "package", "lora")
 	log.Info("LoRa modem destructor")
 
 	stringToSleep := map[string]sx126x.SleepConfig{

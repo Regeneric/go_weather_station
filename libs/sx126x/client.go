@@ -3,6 +3,7 @@ package sx126x
 import (
 	"fmt"
 	"log/slog"
+	"reflect"
 
 	"periph.io/x/conn/v3/gpio"
 	"periph.io/x/conn/v3/gpio/gpioreg"
@@ -13,12 +14,15 @@ func New(conn spi.Conn, cfg *Config) (*Device, error) {
 	log := slog.With("func", "New()", "params", "(spi.Conn, *Config)", "return", "(*Device, error)", "lib", "sx1262")
 	log.Info("Initializing SX126x module")
 
-	if cfg.Enable == false {
-		return nil, fmt.Errorf("SX126x modem disabled in the config")
+	if cfg == nil {
+		return nil, fmt.Errorf("SX126x modem state improper; cfg is nil")
+	}
+	if conn == nil || reflect.ValueOf(conn).IsNil() {
+		return nil, fmt.Errorf("SPI bus connection state improper")
 	}
 
-	if conn == nil {
-		return nil, fmt.Errorf("SPI bus connection state improper")
+	if cfg.Enable == false {
+		return nil, fmt.Errorf("SX126x modem disabled in the config")
 	}
 
 	loadPin := func(name string) (gpio.PinIO, error) {
