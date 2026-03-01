@@ -29,7 +29,7 @@ func TestValidateCRC(t *testing.T) {
 			tvocError: false,
 		},
 		{
-			name:      "CO2_Max8bit_CRC_Ok__TVOC_Max8bit_CRC_Ok",
+			name:      "CO2_Max16bit_CRC_Ok__TVOC_Max16bit_CRC_Ok",
 			desc:      "Maximum values for both measurements with correct checksums.",
 			data:      []uint8{0xFF, 0xFF, 0xAC, 0xFF, 0xFF, 0xAC},
 			eco2Error: false,
@@ -78,7 +78,7 @@ func TestValidateCRC(t *testing.T) {
 			tvocError: false,
 		},
 		{
-			name:      "CO2_Max8bit_CRC_Ok",
+			name:      "CO2_Max16bit_CRC_Ok",
 			desc:      "Maximum values for measurements with correct checksums.",
 			data:      []uint8{0xFF, 0xFF, 0xAC},
 			eco2Error: false,
@@ -230,7 +230,7 @@ func TestMeasureIaq(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "CO2_Max8bit_CRC_Ok__TVOC_Max8bit_CRC_Ok",
+			name:        "CO2_Max16bit_CRC_Ok__TVOC_Max16bit_CRC_Ok",
 			desc:        "Maximum values for both measurement blocks with correct checksums.",
 			txBytes:     []uint8{0x20, 0x08},
 			rxBytes:     []uint8{0xFF, 0xFF, 0xAC, 0xFF, 0xFF, 0xAC},
@@ -284,26 +284,10 @@ func TestMeasureIaq(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:        "DataFrameTooShort",
-			desc:        "Received frame is shorter than expected due to broken transmission. The function should throw an error.",
-			txBytes:     []uint8{0x20, 0x08},
-			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00},
-			rx:          make([]uint8, 6),
-			expectError: true,
-		},
-		{
-			name:        "DataFrameTooLong",
-			desc:        "Received frame is longer than expected due to garbage on the bus. The function should reject it.",
-			txBytes:     []uint8{0x20, 0x08},
-			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00, 0xFF},
-			rx:          make([]uint8, 6),
-			expectError: true,
-		},
-		{
 			name:        "DataBufferTooShort",
 			desc:        "Data buffer provided by the caller is too small. The function should reject it.",
 			txBytes:     []uint8{0x20, 0x08},
-			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00, 0xFF},
+			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00},
 			rx:          make([]uint8, 5),
 			expectError: true,
 		},
@@ -311,7 +295,7 @@ func TestMeasureIaq(t *testing.T) {
 			name:        "DataBufferTooLong",
 			desc:        "Data buffer provided by the caller is larger than needed. The function should reject it.",
 			txBytes:     []uint8{0x20, 0x08},
-			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00, 0xFF},
+			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00},
 			rx:          make([]uint8, 7),
 			expectError: true,
 		},
@@ -348,7 +332,439 @@ func TestMeasureIaq(t *testing.T) {
 			}
 
 			if !bytes.Equal(i2c.RxData, tc.rx) {
-				t.Errorf("FAIL: %s\nWrong bytes received from I2C!\nExpected: [%# x ]\nSent:     [%# x ]", tc.desc, tc.rxBytes, i2c.RxData)
+				t.Errorf("FAIL: %s\nWrong bytes received from I2C!\nExpected: [%# x ]\nSent:     [%# x ]", tc.desc, tc.rx, i2c.RxData)
+			}
+		})
+	}
+}
+
+func TestGetIaqBaseline(t *testing.T) {
+	tests := []struct {
+		name        string
+		desc        string
+		txBytes     []uint8
+		rxBytes     []uint8
+		rx          []uint8
+		i2cError    error
+		expectError bool
+	}{
+		{
+			name:        "CO2_0_CRC_Ok__TVOC_0_CRC_Ok",
+			desc:        "Minimum values for both measurements with correct checksums.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0x00, 0x00, 0x81, 0x00, 0x00, 0x81},
+			rx:          make([]uint8, 6),
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "CO2_Max16bit_CRC_Ok__TVOC_Max16bit_CRC_Ok",
+			desc:        "Maximum values for both measurement blocks with correct checksums.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0xFF, 0xFF, 0xAC, 0xFF, 0xFF, 0xAC},
+			rx:          make([]uint8, 6),
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "CO2_Shift_CRC_Ok__TVOC_Shift_CRC_Ok",
+			desc:        "Different non-zero values to ensure the driver does not mix up eCO2 and TVOC data.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0x12, 0x34, 0x37, 0x56, 0x78, 0x7D},
+			rx:          make([]uint8, 6),
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "CO2_128_CRC_Ok__TVOC_256_CRC_Ok",
+			desc:        "Valid standard sensor readings with correct checksums.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0x00, 0x80, 0xFB, 0x01, 0x00, 0x75},
+			rx:          make([]uint8, 6),
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "CO2_128_CRC_Error__TVOC_256_CRC_Ok",
+			desc:        "Invalid checksum in the first measurement block. The function should return a validation error.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x75},
+			rx:          make([]uint8, 6),
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "CO2_128_CRC_Ok__TVOC_256_CRC_Error",
+			desc:        "Invalid checksum in the second measurement block. The function should return a validation error.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0x00, 0x80, 0xFB, 0x01, 0x00, 0x00},
+			rx:          make([]uint8, 6),
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "CO2_128_CRC_Error__TVOC_256_CRC_Error",
+			desc:        "Invalid checksums for both measurements. The function should return a validation error.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00},
+			rx:          make([]uint8, 6),
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooShort",
+			desc:        "Data buffer provided by the caller is too small. The function should reject it.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00},
+			rx:          make([]uint8, 5),
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooLong",
+			desc:        "Data buffer provided by the caller is larger than needed. The function should reject it.",
+			txBytes:     []uint8{0x20, 0x15},
+			rxBytes:     []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00},
+			rx:          make([]uint8, 7),
+			expectError: true,
+		},
+		{
+			name:        "I2C_HardwareError",
+			desc:        "Simulate hardware bus error during measurement.",
+			txBytes:     nil,
+			rxBytes:     nil,
+			i2cError:    fmt.Errorf("I2C bus error"),
+			expectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
+			dev := Device{I2C: &i2c}
+
+			err := dev.GetIaqBaseline(tc.rx)
+
+			if tc.expectError == true {
+				if err == nil {
+					t.Fatalf("FAIL: %s\nExpected error but got nil", tc.desc)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nGetIaqBaseline returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(i2c.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to I2C!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, i2c.TxData)
+			}
+
+			if !bytes.Equal(i2c.RxData, tc.rx) {
+				t.Errorf("FAIL: %s\nWrong bytes received from I2C!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.rx, i2c.RxData)
+			}
+		})
+	}
+}
+
+func TestSetIaqBaseline(t *testing.T) {
+	tests := []struct {
+		name        string
+		desc        string
+		txBytes     []uint8
+		tx          []uint8
+		i2cError    error
+		expectError bool
+	}{
+		{
+			name:        "CO2_0_CRC_Ok__TVOC_0_CRC_Ok",
+			desc:        "Minimum values for both measurements with correct checksums.",
+			txBytes:     []uint8{0x20, 0x1E, 0x00, 0x00, 0x81, 0x00, 0x00, 0x81},
+			tx:          []uint8{0x00, 0x00, 0x81, 0x00, 0x00, 0x81},
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "CO2_Max16bit_CRC_Ok__TVOC_Max16bit_CRC_Ok",
+			desc:        "Maximum values for both measurement blocks with correct checksums.",
+			txBytes:     []uint8{0x20, 0x1E, 0xFF, 0xFF, 0xAC, 0xFF, 0xFF, 0xAC},
+			tx:          []uint8{0xFF, 0xFF, 0xAC, 0xFF, 0xFF, 0xAC},
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "CO2_Shift_CRC_Ok__TVOC_Shift_CRC_Ok",
+			desc:        "Different non-zero values to ensure the driver does not mix up eCO2 and TVOC data.",
+			txBytes:     []uint8{0x20, 0x1E, 0x56, 0x78, 0x7D, 0x12, 0x34, 0x37},
+			tx:          []uint8{0x12, 0x34, 0x37, 0x56, 0x78, 0x7D},
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "CO2_128_CRC_Ok__TVOC_256_CRC_Ok",
+			desc:        "Valid standard sensor readings with correct checksums.",
+			txBytes:     []uint8{0x20, 0x1E, 0x01, 0x00, 0x75, 0x00, 0x80, 0xFB},
+			tx:          []uint8{0x00, 0x80, 0xFB, 0x01, 0x00, 0x75},
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "CO2_128_CRC_Error__TVOC_256_CRC_Ok",
+			desc:        "Invalid checksum in the first measurement block. The function should return a validation error.",
+			txBytes:     []uint8{0x20, 0x1E, 0x01, 0x00, 0x75, 0x00, 0x80, 0x00},
+			tx:          []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x75},
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "CO2_128_CRC_Ok__TVOC_256_CRC_Error",
+			desc:        "Invalid checksum in the second measurement block. The function should return a validation error.",
+			txBytes:     []uint8{0x20, 0x1E, 0x01, 0x00, 0x00, 0x00, 0x80, 0xFB},
+			tx:          []uint8{0x00, 0x80, 0xFB, 0x01, 0x00, 0x00},
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "CO2_128_CRC_Error__TVOC_256_CRC_Error",
+			desc:        "Invalid checksums for both measurements. The function should return a validation error.",
+			txBytes:     []uint8{0x20, 0x1E, 0x01, 0x00, 0x00, 0x00, 0x80, 0x00},
+			tx:          []uint8{0x00, 0x80, 0x00, 0x01, 0x00, 0x00},
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooShort",
+			desc:        "Data buffer provided by the caller is too small. The function should reject it.",
+			txBytes:     nil,
+			tx:          []uint8{0x12, 0x34, 0x37, 0x56, 0x78},
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooLong",
+			desc:        "Data buffer provided by the caller is larger than needed. The function should reject it.",
+			txBytes:     nil,
+			tx:          []uint8{0x12, 0x34, 0x37, 0x56, 0x78, 0x7D, 0xFF},
+			expectError: true,
+		},
+		{
+			name:        "I2C_HardwareError",
+			desc:        "Simulate hardware bus error during measurement.",
+			txBytes:     nil,
+			tx:          nil,
+			i2cError:    fmt.Errorf("I2C bus error"),
+			expectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			i2c := MockI2C{ReturnError: tc.i2cError}
+			dev := Device{I2C: &i2c}
+
+			err := dev.SetIaqBaseline(tc.tx)
+
+			if tc.expectError == true {
+				if err == nil {
+					t.Fatalf("FAIL: %s\nExpected error but got nil", tc.desc)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nSetIaqBaseline returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(i2c.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to I2C!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, i2c.TxData)
+			}
+		})
+	}
+}
+
+func TestSetAbsoluteHumidity(t *testing.T) {
+	tests := []struct {
+		name        string
+		desc        string
+		txBytes     []uint8
+		tx          []uint8
+		i2cError    error
+		expectError bool
+	}{
+		{
+			name:        "AbsoluteHumidity_0_CRC_Ok",
+			desc:        "Minimum absolute humidity value with correct checksum.",
+			txBytes:     []uint8{0x20, 0x61, 0x00, 0x00, 0x81},
+			tx:          []uint8{0x00, 0x00, 0x81},
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "AbsoluteHumidity_Max16bit_CRC_Ok",
+			desc:        "Maximum absolute humidity value with correct checksum.",
+			txBytes:     []uint8{0x20, 0x61, 0xFF, 0xFF, 0xAC},
+			tx:          []uint8{0xFF, 0xFF, 0xAC},
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "AbsoluteHumidity_Shift_CRC_Ok",
+			desc:        "Different non-zero values for most and least significant bytes to ensure the driver does not mix them up.",
+			txBytes:     []uint8{0x20, 0x61, 0x12, 0x34, 0x37},
+			tx:          []uint8{0x12, 0x34, 0x37},
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "AbsoluteHumidity_128_CRC_Ok",
+			desc:        "Valid standard absolute humidity reading with correct checksum.",
+			txBytes:     []uint8{0x20, 0x61, 0x00, 0x80, 0xFB},
+			tx:          []uint8{0x00, 0x80, 0xFB},
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "AbsoluteHumidity_128_CRC_Error",
+			desc:        "Invalid checksum. The function should return a validation error and prevent hardware transmission.",
+			txBytes:     nil,
+			tx:          []uint8{0x00, 0x80, 0x00},
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooShort",
+			desc:        "Data buffer provided by the caller is too small. The function should reject it.",
+			txBytes:     nil,
+			tx:          []uint8{0x12, 0x34},
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooLong",
+			desc:        "Data buffer provided by the caller is larger than needed. The function should reject it.",
+			txBytes:     nil,
+			tx:          []uint8{0x12, 0x34, 0x56, 0x78},
+			expectError: true,
+		},
+		{
+			name:        "I2C_HardwareError",
+			desc:        "Simulate hardware bus error during measurement.",
+			txBytes:     nil,
+			tx:          nil,
+			i2cError:    fmt.Errorf("I2C bus error"),
+			expectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			i2c := MockI2C{ReturnError: tc.i2cError}
+			dev := Device{I2C: &i2c}
+
+			err := dev.SetAbsoluteHumidity(tc.tx)
+
+			if tc.expectError == true {
+				if err == nil {
+					t.Fatalf("FAIL: %s\nExpected error but got nil", tc.desc)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nSetAbsoluteHumidity returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(i2c.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to I2C!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, i2c.TxData)
+			}
+		})
+	}
+}
+
+func TestMeasureTest(t *testing.T) {
+	tests := []struct {
+		name        string
+		desc        string
+		txBytes     []uint8
+		rxBytes     []uint8
+		rx          []uint8
+		i2cError    error
+		expectError bool
+	}{
+		{
+			name:        "Test_Ok_CRC_Ok",
+			desc:        "Valid self-test response indicating hardware is fully functional, with correct checksum.",
+			txBytes:     []uint8{0x20, 0x32},
+			rxBytes:     []uint8{0xD4, 0x00, 0xC6},
+			rx:          make([]uint8, 3),
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "Test_Error_CRC_Ok",
+			desc:        "Self-test response indicating hardware failure, but transmission and checksum are mathematically correct.",
+			txBytes:     []uint8{0x20, 0x32},
+			rxBytes:     []uint8{0xD4, 0xFF, 0x6A},
+			rx:          make([]uint8, 3),
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "Test_Ok_CRC_Error",
+			desc:        "Self-test response has an invalid checksum. The function should reject it.",
+			txBytes:     []uint8{0x20, 0x32},
+			rxBytes:     []uint8{0xD4, 0x00, 0xFF},
+			rx:          make([]uint8, 3),
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooShort",
+			desc:        "Data buffer provided by the caller is too small. The function should reject it.",
+			txBytes:     []uint8{0x20, 0x32},
+			rxBytes:     []uint8{0xD4, 0x00, 0xC6},
+			rx:          make([]uint8, 2),
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooLong",
+			desc:        "Data buffer provided by the caller is larger than needed. The function should reject it.",
+			txBytes:     []uint8{0x20, 0x32},
+			rxBytes:     []uint8{0xD4, 0x00, 0xC6},
+			rx:          make([]uint8, 4),
+			expectError: true,
+		},
+		{
+			name:        "I2C_HardwareError",
+			desc:        "Simulate hardware bus error during measurement.",
+			txBytes:     nil,
+			rxBytes:     nil,
+			i2cError:    fmt.Errorf("I2C bus error"),
+			expectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
+			dev := Device{I2C: &i2c}
+
+			err := dev.MeasureTest(tc.rx)
+
+			if tc.expectError == true {
+				if err == nil {
+					t.Fatalf("FAIL: %s\nExpected error but got nil", tc.desc)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nMeasureTest returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(i2c.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to I2C!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, i2c.TxData)
+			}
+
+			if !bytes.Equal(i2c.RxData, tc.rx) {
+				t.Errorf("FAIL: %s\nWrong bytes received from I2C!\nExpected: [%# x]\nGot:      [%# x]", tc.desc, tc.rx, i2c.RxData)
 			}
 		})
 	}

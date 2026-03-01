@@ -34,3 +34,17 @@ const (
 	RegSetTvocBaselineMSB          Register = RegSetTvocBaseline >> 8
 	RegSetTvocBaselineLSB          Register = RegSetTvocBaseline & 0xFF
 )
+
+type CRC uint8
+
+const (
+	CrcMask  CRC = 0x31
+	CrcBase  CRC = 0xFF
+	CrcMsbit CRC = 0x80
+)
+
+type Measure uint16
+
+const (
+	MeasureTest Measure = 0xD400
+)
