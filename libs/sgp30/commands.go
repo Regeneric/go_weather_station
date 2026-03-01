@@ -146,7 +146,32 @@ func (d *Device) MeasureTest(data []uint8) error {
 	return nil
 }
 
-func (d *Device) GetFeatureSet() error            { return nil }
+func (d *Device) GetFeatureSet(data []uint8) error {
+	log := slog.With("func", "Device.GetFeatureSet()", "params", "([]uint8)", "return", "(error)", "lib", "sgp30")
+	log.Debug("SGP30 get feature set")
+
+	dataFrameLength := 3
+	if len(data) != dataFrameLength {
+		return fmt.Errorf("Data frame length invalid.\nExpected: [ %v ]\nGot:      [ %v ]", dataFrameLength, len(data))
+	}
+
+	if err := d.I2C.Tx(uint16(RegGetFeatureSet), nil, data); err != nil {
+		return fmt.Errorf("Could not send geature set command to SGP30 sensor: %w", err)
+	}
+
+	testValue := uint16(data[0])<<8 | uint16(data[1])
+	if testValue != uint16(FeatureSet) {
+		return fmt.Errorf("Feature set test returned unexpected value [%# x]", testValue)
+	}
+
+	if err := validateCRC(data); err != nil {
+		return fmt.Errorf("CRC validation error: %w", err)
+	}
+
+	log.Info("Feature set command send to sensor", "address", RegGetFeatureSet)
+	return nil
+}
+
 func (d *Device) MeasureRaw() error               { return nil }
 func (d *Device) GetTvocInceptiveBaseline() error { return nil }
 func (d *Device) SetTvocBaseline() error          { return nil }

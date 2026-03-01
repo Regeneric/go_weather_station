@@ -47,4 +47,5 @@ type Measure uint16
 
 const (
 	MeasureTest Measure = 0xD400
+	FeatureSet  Measure = 0x0022
 )

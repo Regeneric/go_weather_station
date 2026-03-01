@@ -769,3 +769,96 @@ func TestMeasureTest(t *testing.T) {
 		})
 	}
 }
+
+func TestGetFeatureSet(t *testing.T) {
+	tests := []struct {
+		name        string
+		desc        string
+		txBytes     []uint8
+		rxBytes     []uint8
+		rx          []uint8
+		i2cError    error
+		expectError bool
+	}{
+		{
+			name:        "FeatureSet_Ok_CRC_Ok",
+			desc:        "",
+			txBytes:     []uint8{0x20, 0x2F},
+			rxBytes:     []uint8{0x00, 0x22, 0x65},
+			rx:          make([]uint8, 3),
+			i2cError:    nil,
+			expectError: false,
+		},
+		{
+			name:        "FeatureSet_Ok_CRC_Error",
+			desc:        "",
+			txBytes:     []uint8{0x20, 0x2F},
+			rxBytes:     []uint8{0x00, 0x22, 0xFF},
+			rx:          make([]uint8, 3),
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "FeatureSet_Error_CRC_Ok",
+			desc:        "",
+			txBytes:     []uint8{0x20, 0x2F},
+			rxBytes:     []uint8{0x00, 0xFF, 0x2D},
+			rx:          make([]uint8, 3),
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooShort",
+			desc:        "Data buffer provided by the caller is too small. The function should reject it.",
+			txBytes:     []uint8{0x20, 0x2F},
+			rxBytes:     []uint8{0x00, 0x22, 0x65},
+			rx:          make([]uint8, 2),
+			i2cError:    nil,
+			expectError: true,
+		},
+		{
+			name:        "DataBufferTooLong",
+			desc:        "Data buffer provided by the caller is larger than needed. The function should reject it.",
+			txBytes:     []uint8{0x20, 0x2F},
+			rxBytes:     []uint8{0x00, 0x22, 0x65},
+			rx:          make([]uint8, 4),
+			expectError: true,
+		},
+		{
+			name:        "I2C_HardwareError",
+			desc:        "Simulate hardware bus error during measurement.",
+			txBytes:     nil,
+			rxBytes:     nil,
+			i2cError:    fmt.Errorf("I2C bus error"),
+			expectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			i2c := MockI2C{ReturnError: tc.i2cError, RxData: tc.rxBytes}
+			dev := Device{I2C: &i2c}
+
+			err := dev.GetFeatureSet(tc.rx)
+
+			if tc.expectError == true {
+				if err == nil {
+					t.Fatalf("FAIL: %s\nExpected error but got nil", tc.desc)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("FAIL: %s\nGetFeatureSet returned: %v", tc.desc, err)
+			}
+
+			if !bytes.Equal(i2c.TxData, tc.txBytes) {
+				t.Errorf("FAIL: %s\nWrong bytes send to I2C!\nExpected: [%# x]\nSent:     [%# x]", tc.desc, tc.txBytes, i2c.TxData)
+			}
+
+			if !bytes.Equal(i2c.RxData, tc.rx) {
+				t.Errorf("FAIL: %s\nWrong bytes received from I2C!\nExpected: [%# x]\nGot:      [%# x]", tc.desc, tc.rx, i2c.RxData)
+			}
+		})
+	}
+}
