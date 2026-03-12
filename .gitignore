@@ -1,6 +1,7 @@
 /bin/
 /dist/
 /tools/binary_checker
+/build/
 
 *.out
 coverage.txt

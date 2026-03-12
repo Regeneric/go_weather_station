@@ -68,6 +68,7 @@ type Transceiver interface {
 	DequeueRx(timeout time.Duration) ([]uint8, error)
 	WaitForIRQ(timeout time.Duration) bool
 
+	Run(ctx context.Context)
 	Close(sleepMode sx126x.SleepConfig) error
 }
 
@@ -129,6 +130,27 @@ func Setup(n *Node) error {
 	if err := n.hw.HardReset(); err != nil {
 		return err
 	}
+
+	// = 13.6.2 ClearDeviceErrors ========
+	if err := n.hw.ClearDeviceErrors(true); err != nil {
+		log.Error("Could not clear device errors", "error", err)
+	}
+	// ---------------------------------
+
+	// = 13.1.11 SetRegulatorMode ======
+	if err := n.hw.SetStandby(sx126x.StandbyRc); err != nil {
+		return err
+	}
+
+	regulator := sx126x.RegulatorLdo
+	if n.cfg.DC_DC == true {
+		regulator = sx126x.RegulatorDcDc
+	}
+
+	if err := n.hw.SetRegulatorMode(regulator); err != nil {
+		return err
+	}
+	// ---------------------------------
 
 	// = 13.1.2 SetStandby =============
 	stringToStandby := map[string]sx126x.StandbyMode{
@@ -202,6 +224,12 @@ func Setup(n *Node) error {
 	}
 	// ---------------------------------
 
+	// = 13.1.14 SetPaConfig ===========
+	if err := n.hw.SetPaConfig(); err != nil {
+		return err
+	}
+	// ---------------------------------
+
 	// = 13.4.4 SetTxParams ============
 	wordToRamp := map[uint16]sx126x.RampTime{
 		10:   sx126x.PaRamp10u,
@@ -252,6 +280,7 @@ func Setup(n *Node) error {
 	iq := sx126x.IqStandard
 	if n.cfg.LoRa.InvertedIQ == true {
 		iq = sx126x.IqInverted
+		log.Error("!! IQ INVERTED !!")
 	}
 
 	if err := n.hw.SetPacketParams(n.hw.PacketLoRaConfig(n.cfg.PreambleLength, header, n.cfg.PayloadLength, crc, iq)); err != nil {
@@ -275,7 +304,7 @@ func Setup(n *Node) error {
 	if _, err := n.hw.ReadRegister(uint16(sx126x.RegLoraSyncWordMsb), syncWord); err != nil {
 		return err
 	} else {
-		log.Debug("Read register success", "syncWord", fmt.Sprintf("% X", syncWord))
+		log.Info("Read register success", "syncWord", fmt.Sprintf("% X", syncWord))
 	}
 	// ---------------------------------
 
@@ -322,13 +351,11 @@ func (n *Node) Close() error {
 
 func (n *Node) Tx(data []uint8) error {
 	log := slog.With("func", "Tx()", "params", "([]uint8)", "return", "(error)", "package", "lora")
-	log.Info("SX126X data transmit")
+	log.Info("LoRa data transmit")
 
 	return n.hw.EnqueueTx(data)
 }
 
 func (n *Node) Run(ctx context.Context) {
-	log := slog.With("func", "Run()", "params", "(context.Context)", "return", "(-)", "package", "lora")
-	log.Info("SX126X modem event loop")
-
+	n.hw.Run(ctx)
 }

@@ -61,7 +61,7 @@ func Setup(cfg *config.SPI) (map[string]spi.Conn, func(), error) {
 		closers = append(closers, port.Close)
 
 		// Connection params
-		conn, err := port.Connect(physic.Frequency(dev.Speed), dev.Mode, dev.BitsPerWord)
+		conn, err := port.Connect(physic.Frequency(dev.Speed*uint64(physic.Hertz)), dev.Mode, dev.BitsPerWord)
 		if err != nil {
 			cleanup()
 			return nil, func() {}, fmt.Errorf("Failed to configure SPI %s (%s): %w", key, dev.Name, err)
