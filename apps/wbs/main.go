@@ -111,8 +111,9 @@ func main() {
 	// = SX1262 ===  TODO: automatic reconnects after failure
 	// ------------------------------------------------------------------------
 	sxlog := lora.SlogAdapter{Log: logger}
+	pinreg := lora.PinReg{}
 
-	hkSX1262_0, err := sx126x.New(hkSPI_0, &cfg.SX126X, sx126x.WithLogger(sxlog))
+	hkSX1262_0, err := sx126x.New(hkSPI_0, &cfg.SX126X, sx126x.WithLogger(sxlog), sx126x.WithPinReg(pinreg))
 	if err != nil || hkSX1262_0 == nil {
 		slog.Error("[ MAIN ] Critical SX126x modem failure", "error", err)
 	}

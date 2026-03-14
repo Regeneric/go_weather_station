@@ -8,82 +8,14 @@ import (
 	"time"
 
 	"github.com/Regeneric/iot-drivers/libs/sx126x"
-
-	"periph.io/x/conn/v3/physic"
+	"periph.io/x/conn/v3/gpio"
+	"periph.io/x/conn/v3/gpio/gpioreg"
 )
-
-type Transceiver interface {
-	SetSleep(mode sx126x.SleepConfig) error
-	SetStandby(mode sx126x.StandbyMode) error
-	SetFs() error
-	SetTx(timeout int32) error
-	SetRx(timeout int32) error
-	StopTimerOnPreamble(enable bool) error
-	SetRxDutyCycle(rxPeriod, sleepPeriod uint32) error
-	SetCAD() error
-	SetTxContinuousWave() error
-	SetTxInfinitePreamble() error
-	SetRegulatorMode(mode sx126x.RegulatorMode) error
-	Calibrate(param sx126x.CalibrationParam) error
-	CalibrateImage(freq1, freq2 sx126x.CalibrationImageFreq) error
-	SetPaConfig(opts ...sx126x.OptionsPa) error
-	SetRxTxFallbackMode(mode sx126x.FallbackMode) error
-	SetDioIrqParams(irqMask sx126x.IrqMask, dioIRQ ...sx126x.IrqMask) error
-	GetIrqStatus() (uint16, error)
-	ClearIrqStatus(mask sx126x.IrqMask) error
-	SetDIO2AsRfSwitchCtrl(enable bool) error
-	SetDIO3AsTCXOCtrl(voltage sx126x.TcxoVoltage, timeout int32) error
-	SetRfFrequency(frequency physic.Frequency) error
-	SetPacketType(packet sx126x.PacketType) error
-	GetPacketType() (uint8, error)
-	SetTxParams(dbm int8, rampTime sx126x.RampTime) error
-	SetModulationParams(opts ...sx126x.OptionsModulation) error
-	SetPacketParams(opts ...sx126x.OptionsPacket) error
-	SetCadParams(opts ...sx126x.OptionsCAD) error
-	SetBufferBaseAddress(txBaseAddress, rxBaseAddress uint8) error
-	SetLoRaSymbNumTimeout(symbols uint8) error
-	GetStatus() (sx126x.ModemStatus, error)
-	GetRxBufferStatus() (sx126x.BufferStatus, error)
-	GetPacketStatus() (sx126x.PacketStatus, error)
-	GetRssiInst() (int8, error)
-	GetStats() (sx126x.PacketStats, error)
-	ResetStats(resetInternalCache bool) error
-	GetDeviceErrors() (sx126x.DeviceError, error)
-	ClearDeviceErrors(resetInternalCache bool) error
-
-	BusyCheck(timeout <-chan time.Time, sleep ...time.Duration) error
-	HardReset(timeout ...<-chan time.Time) error
-	Write(w []uint8, r []uint8, timeout ...<-chan time.Time) error
-	WriteRegister(address uint16, data []uint8) (uint8, error)
-	ReadRegister(address uint16, data []uint8) (uint8, error)
-	WriteBuffer(offset uint8, data []uint8) (uint8, error)
-	ReadBuffer(offset uint8, data []uint8) (uint8, error)
-
-	PaConfig(txPower int8, paDutyCycle, hpMax, paLut uint8, deviceSel sx126x.PaConfigDeviceSel) sx126x.OptionsPa
-	ModulationConfigLoRa(spreadingFactor, codingRate uint8, bandwidth physic.Frequency, ldro bool) sx126x.OptionsModulation
-	PacketLoRaConfig(preambleLength uint16, headerType sx126x.LoRaHeaderType, payloadLength int, crc sx126x.LoRaCrcMode, iqMode sx126x.LoRaIQMode) sx126x.OptionsPacket
-	CADConfig(symbol sx126x.CadSymbolNum, detectionPeak, detectionMin uint8, exitMode sx126x.CadExitMode, timeout uint32) sx126x.OptionsCAD
-
-	EnqueueTx(payload []uint8) error
-	DequeueRx(timeout time.Duration) ([]uint8, error)
-	WaitForIRQ(timeout time.Duration) bool
-
-	Run(ctx context.Context) error
-	Close(sleepMode sx126x.SleepConfig) error
-}
 
 type Node struct {
 	hw  Transceiver
 	cfg *sx126x.Config
 }
-
-type Status uint16
-
-const (
-	SX126XModemError Status = 0x0001
-	LoraModemError   Status = 0x0002
-	LoraSetupError   Status = 0x0003
-)
 
 func New(modem Transceiver, cfg *sx126x.Config) (*Node, error) {
 	log := slog.With("func", "New()", "params", "(Transceiver, *sx126x.Config)", "return", "(*Node, error)", "package", "lora")
@@ -219,7 +151,7 @@ func Setup(n *Node) error {
 	// ---------------------------------
 
 	// = 13.4.1 SetRfFrequency =========
-	if err := n.hw.SetRfFrequency(physic.Frequency(n.cfg.Frequency) * physic.Hertz); err != nil {
+	if err := n.hw.SetRfFrequency(sx126x.Frequency(n.cfg.Frequency)); err != nil {
 		return err
 	}
 	// ---------------------------------
@@ -261,7 +193,7 @@ func Setup(n *Node) error {
 	// ---------------------------------
 
 	// = 13.4.5 SetModulationParams ====
-	if err := n.hw.SetModulationParams(n.hw.ModulationConfigLoRa(n.cfg.LoRa.SpreadingFactor, n.cfg.LoRa.CodingRate, physic.Frequency(n.cfg.Bandwidth)*physic.Hertz, n.cfg.LoRa.LDRO)); err != nil {
+	if err := n.hw.SetModulationParams(n.hw.ModulationConfigLoRa(n.cfg.LoRa.SpreadingFactor, n.cfg.LoRa.CodingRate, sx126x.Frequency(n.cfg.Bandwidth), n.cfg.LoRa.LDRO)); err != nil {
 		return err
 	}
 	// ---------------------------------
@@ -372,4 +304,32 @@ func (n *Node) Run(ctx context.Context) error {
 		return err
 	}
 	return n.hw.Run(ctx)
+}
+
+// Translate from periph.io to generic interfaces
+type Pin struct {
+	pin gpio.PinIO
+}
+
+func (p Pin) In(pull sx126x.Pull, edge sx126x.Edge) error {
+	return p.pin.In(gpio.Pull(pull), gpio.Edge(edge))
+}
+func (p Pin) Out(l sx126x.Level) error {
+	return p.pin.Out(gpio.Level(l))
+}
+func (p Pin) Read() sx126x.Level {
+	return sx126x.Level(p.pin.Read())
+}
+func (p Pin) WaitForEdge(timeout time.Duration) bool {
+	return p.pin.WaitForEdge(timeout)
+}
+
+type PinReg struct{}
+
+func (p PinReg) ByName(name string) sx126x.PinIO {
+	pin := gpioreg.ByName(name)
+	if pin == nil {
+		return nil
+	}
+	return Pin{pin: pin}
 }
