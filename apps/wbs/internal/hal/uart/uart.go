@@ -14,15 +14,15 @@ import (
 
 func New(device string) (uart.PortCloser, error) {
 	log := slog.With("func", "New()", "params", "(string)", "return", "(uart.PortCloser, error)", "package", "uart")
-	log.Info("Initializing UART bus", "device", device)
+	log.Info("[ UART ] Initializing port", "port", device)
 
 	if _, err := host.Init(); err != nil {
-		return nil, fmt.Errorf("[UART] Host init failed: %w", err)
+		return nil, fmt.Errorf("[ UART ] Port init failed: %w", err)
 	}
 
 	bus, err := uartreg.Open(device)
 	if err != nil {
-		return nil, fmt.Errorf("[UART] Failed to open UART bus %s: %w", device, err)
+		return nil, fmt.Errorf("[ UART ] Failed to open port %s: %w", device, err)
 	}
 
 	return bus, nil
@@ -30,10 +30,10 @@ func New(device string) (uart.PortCloser, error) {
 
 func Setup(cfg *config.UART) (map[string]conn.Conn, func(), error) {
 	log := slog.With("func", "Setup()", "params", "(*config.UART)", "return", "(map[string]conn.Conn, func(), error)", "package", "uart")
-	log.Info("UART bus setup")
+	log.Info("[ UART ] Port setup")
 
 	if cfg.Enable == false {
-		return nil, func() {}, fmt.Errorf("UART bus disabled in the config")
+		return nil, func() {}, fmt.Errorf("[ UART ] Port disabled in the config")
 	}
 
 	conns := make(map[string]conn.Conn)
@@ -41,7 +41,7 @@ func Setup(cfg *config.UART) (map[string]conn.Conn, func(), error) {
 
 	cleanup := func() {
 		for i, c := range closers {
-			slog.Debug("Closing UART bus connection...", "connection", i)
+			slog.Debug("[ UART ] Closing port connection...", "connection", i)
 			_ = c()
 		}
 	}
@@ -54,7 +54,7 @@ func Setup(cfg *config.UART) (map[string]conn.Conn, func(), error) {
 		port, err := New(dev.Name)
 		if err != nil {
 			cleanup()
-			return nil, func() {}, fmt.Errorf("Failed to init UART %s (%s): %w", key, dev.Name, err)
+			return nil, func() {}, fmt.Errorf("[ UART ] Failed to init port %s (%s): %w", key, dev.Name, err)
 		}
 		closers = append(closers, port.Close)
 
@@ -67,8 +67,8 @@ func Setup(cfg *config.UART) (map[string]conn.Conn, func(), error) {
 		flow, ok := byteToFlow[dev.DataFlow]
 		if !ok {
 			flow = uart.NoFlow
-			log.Warn("Unknown flow option", "flow", dev.DataFlow)
-			log.Warn("Limiting FLOW to NoFlow")
+			log.Warn("[ UART ] Unknown flow option", "flow", dev.DataFlow)
+			log.Warn("[ UART ] Limiting FLOW to NoFlow")
 		}
 
 		byteToParity := map[string]uart.Parity{
@@ -82,18 +82,18 @@ func Setup(cfg *config.UART) (map[string]conn.Conn, func(), error) {
 		parity, ok := byteToParity[dev.Parity]
 		if !ok {
 			parity = uart.NoParity
-			log.Warn("Unknown parity option", "parity", dev.Parity)
-			log.Warn("Limiting PARITY to NoParity")
+			log.Warn("[ UART ] Unknown parity option", "parity", dev.Parity)
+			log.Warn("[ UART ] Limiting PARITY to NoParity")
 		}
 
 		conn, err := port.Connect(physic.Frequency(dev.Speed), dev.StopBit, parity, flow, dev.DataLength)
 		if err != nil {
 			cleanup()
-			return nil, func() {}, fmt.Errorf("Failed to configure UART %s (%s): %w", key, dev.Name, err)
+			return nil, func() {}, fmt.Errorf("[ UART ] Failed to configure port %s (%s): %w", key, dev.Name, err)
 		}
 
 		conns[key] = conn
-		slog.Debug("UART device configured", "key", key, "name", dev.Name, "speed", dev.Speed, "stopBit", dev.StopBit, "parity", parity, "dataFlow", flow, "dataLength", dev.DataLength)
+		slog.Debug("[ UART ] Port configured", "key", key, "name", dev.Name, "speed", dev.Speed, "stopBit", dev.StopBit, "parity", parity, "dataFlow", flow, "dataLength", dev.DataLength)
 	}
 
 	return conns, cleanup, nil

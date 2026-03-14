@@ -16,8 +16,8 @@ type Transceiver interface {
 	SetSleep(mode sx126x.SleepConfig) error
 	SetStandby(mode sx126x.StandbyMode) error
 	SetFs() error
-	SetTx(timeout uint32) error
-	SetRx(timeout uint32) error
+	SetTx(timeout int32) error
+	SetRx(timeout int32) error
 	StopTimerOnPreamble(enable bool) error
 	SetRxDutyCycle(rxPeriod, sleepPeriod uint32) error
 	SetCAD() error
@@ -32,7 +32,7 @@ type Transceiver interface {
 	GetIrqStatus() (uint16, error)
 	ClearIrqStatus(mask sx126x.IrqMask) error
 	SetDIO2AsRfSwitchCtrl(enable bool) error
-	SetDIO3AsTCXOCtrl(voltage sx126x.TcxoVoltage, timeout uint32) error
+	SetDIO3AsTCXOCtrl(voltage sx126x.TcxoVoltage, timeout int32) error
 	SetRfFrequency(frequency physic.Frequency) error
 	SetPacketType(packet sx126x.PacketType) error
 	GetPacketType() (uint8, error)
@@ -61,14 +61,14 @@ type Transceiver interface {
 
 	PaConfig(txPower int8, paDutyCycle, hpMax, paLut uint8, deviceSel sx126x.PaConfigDeviceSel) sx126x.OptionsPa
 	ModulationConfigLoRa(spreadingFactor, codingRate uint8, bandwidth physic.Frequency, ldro bool) sx126x.OptionsModulation
-	PacketLoRaConfig(preambleLength uint16, headerType sx126x.LoRaHeaderType, payloadLength uint8, crc sx126x.LoRaCrcMode, iqMode sx126x.LoRaIQMode) sx126x.OptionsPacket
+	PacketLoRaConfig(preambleLength uint16, headerType sx126x.LoRaHeaderType, payloadLength int, crc sx126x.LoRaCrcMode, iqMode sx126x.LoRaIQMode) sx126x.OptionsPacket
 	CADConfig(symbol sx126x.CadSymbolNum, detectionPeak, detectionMin uint8, exitMode sx126x.CadExitMode, timeout uint32) sx126x.OptionsCAD
 
 	EnqueueTx(payload []uint8) error
 	DequeueRx(timeout time.Duration) ([]uint8, error)
 	WaitForIRQ(timeout time.Duration) bool
 
-	Run(ctx context.Context)
+	Run(ctx context.Context) error
 	Close(sleepMode sx126x.SleepConfig) error
 }
 
@@ -87,7 +87,7 @@ const (
 
 func New(modem Transceiver, cfg *sx126x.Config) (*Node, error) {
 	log := slog.With("func", "New()", "params", "(Transceiver, *sx126x.Config)", "return", "(*Node, error)", "package", "lora")
-	log.Info("LoRa modem constructor")
+	log.Info("[ LoRa ] Modem constructor")
 
 	if cfg == nil {
 		return nil, fmt.Errorf("LoRa modem state improper; cfg is nil")
@@ -108,7 +108,7 @@ func New(modem Transceiver, cfg *sx126x.Config) (*Node, error) {
 
 func Setup(n *Node) error {
 	log := slog.With("func", "Setup()", "params", "(*Node)", "return", "(error)", "package", "lora")
-	log.Info("LoRa modem setup")
+	log.Info("[ LoRa ] Modem setup")
 
 	if n == nil {
 		return fmt.Errorf("LoRa modem state improper; node is nil")
@@ -161,8 +161,8 @@ func Setup(n *Node) error {
 	standby, ok := stringToStandby[n.cfg.StandbyMode]
 	if !ok {
 		standby = sx126x.StandbyRc
-		log.Warn("Unknown standby mode", "mode", n.cfg.StandbyMode)
-		log.Warn("Limiting standby mode to RC")
+		log.Warn("[ LoRa ] Unknown standby mode", "mode", n.cfg.StandbyMode)
+		log.Warn("[ LoRa ] Limiting standby mode to RC")
 	}
 
 	if err := n.hw.SetStandby(standby); err != nil {
@@ -179,8 +179,8 @@ func Setup(n *Node) error {
 	packet, ok := stringToPacket[n.cfg.Modem]
 	if !ok {
 		packet = sx126x.PacketTypeLoRa
-		log.Warn("Unknown packet type", "packet", n.cfg.Modem)
-		log.Warn("Limiting pakcet type to LoRa")
+		log.Warn("[ LoRa ] Unknown packet type", "packet", n.cfg.Modem)
+		log.Warn("[ LoRa ] Limiting pakcet type to LoRa")
 	}
 
 	if err := n.hw.SetPacketType(packet); err != nil {
@@ -209,8 +209,8 @@ func Setup(n *Node) error {
 		freq1 = sx126x.CalImg430
 		freq2 = sx126x.CalImg440
 
-		log.Warn("Unknown frequency", "freq1", n.cfg.FrequencyRange[0], "freq2", n.cfg.FrequencyRange[1])
-		log.Warn("Limiting frequency range to 430-440")
+		log.Warn("[ LoRa ] Unknown frequency", "freq1", n.cfg.FrequencyRange[0], "freq2", n.cfg.FrequencyRange[1])
+		log.Warn("[ LoRa ] Limiting frequency range to 430-440")
 	}
 
 	if err := n.hw.CalibrateImage(freq1, freq2); err != nil {
@@ -245,8 +245,8 @@ func Setup(n *Node) error {
 	ramp, ok := wordToRamp[n.cfg.RampTime]
 	if !ok {
 		ramp = sx126x.PaRamp800u
-		log.Warn("Unknown ramp time value", "rampTime", n.cfg.RampTime)
-		log.Warn("Limiting ramp time to 800us")
+		log.Warn("[ LoRa ] Unknown ramp time value", "rampTime", n.cfg.RampTime)
+		log.Warn("[ LoRa ] Limiting ramp time to 800us")
 	}
 
 	if err := n.hw.SetTxParams(n.cfg.TransmitPower, ramp); err != nil {
@@ -280,10 +280,9 @@ func Setup(n *Node) error {
 	iq := sx126x.IqStandard
 	if n.cfg.LoRa.InvertedIQ == true {
 		iq = sx126x.IqInverted
-		log.Error("!! IQ INVERTED !!")
 	}
 
-	if err := n.hw.SetPacketParams(n.hw.PacketLoRaConfig(n.cfg.PreambleLength, header, n.cfg.PayloadLength, crc, iq)); err != nil {
+	if err := n.hw.SetPacketParams(n.hw.PacketLoRaConfig(n.cfg.PreambleLength, header, int(n.cfg.PayloadLength), crc, iq)); err != nil {
 		return err
 	}
 	// ---------------------------------
@@ -304,7 +303,7 @@ func Setup(n *Node) error {
 	if _, err := n.hw.ReadRegister(uint16(sx126x.RegLoraSyncWordMsb), syncWord); err != nil {
 		return err
 	} else {
-		log.Info("Read register success", "syncWord", fmt.Sprintf("% X", syncWord))
+		log.Info("[ LoRa ] Read register success", "syncWord", fmt.Sprintf("% X", syncWord))
 	}
 	// ---------------------------------
 
@@ -315,7 +314,7 @@ func Setup(n *Node) error {
 	// ---------------------------------
 
 	// = 13.1.5 SetRx ==================
-	if err := n.hw.SetRx(uint32(sx126x.RxContinuous)); err != nil {
+	if err := n.hw.SetRx(int32(sx126x.RxContinuous)); err != nil {
 		return err
 	}
 	// ---------------------------------
@@ -326,7 +325,7 @@ func Setup(n *Node) error {
 
 func (n *Node) Close() error {
 	log := slog.With("func", "Close()", "params", "(-)", "return", "(error)", "package", "lora")
-	log.Info("LoRa modem destructor")
+	log.Info("[ LoRa ] LoRa modem destructor")
 
 	stringToSleep := map[string]sx126x.SleepConfig{
 		"cold_start":     sx126x.SleepColdStart,
@@ -338,8 +337,8 @@ func (n *Node) Close() error {
 	mode, ok := stringToSleep[n.cfg.SleepMode]
 	if !ok {
 		mode = sx126x.SleepWarmStart
-		log.Warn("Unknown sleep mode", "mode", n.cfg.SleepMode)
-		log.Warn("Limiting sleep mode to Warm Start")
+		log.Warn("[ LoRa ] Unknown sleep mode", "mode", n.cfg.SleepMode)
+		log.Warn("[ LoRa ] Limiting sleep mode to Warm Start")
 	}
 
 	if err := n.hw.Close(mode); err != nil {
@@ -351,11 +350,26 @@ func (n *Node) Close() error {
 
 func (n *Node) Tx(data []uint8) error {
 	log := slog.With("func", "Tx()", "params", "([]uint8)", "return", "(error)", "package", "lora")
-	log.Info("LoRa data transmit")
+	log.Info("[ LoRa ] Data transmit")
 
 	return n.hw.EnqueueTx(data)
 }
 
-func (n *Node) Run(ctx context.Context) {
-	n.hw.Run(ctx)
+func (n *Node) Rx(timeout time.Duration) ([]uint8, error) {
+	log := slog.With("func", "Rx()", "params", "(time.Duration)", "return", "([]uint8, error)", "package", "lora")
+	log.Info("[ LoRa ] Data receive")
+
+	payload, err := n.hw.DequeueRx(timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	return payload, nil
+}
+
+func (n *Node) Run(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	return n.hw.Run(ctx)
 }
